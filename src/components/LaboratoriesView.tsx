@@ -33,6 +33,7 @@ import {
 import { FizLabTheme, LabExperimentId, LabTelemetry } from '../types/fizlab';
 import AiSectionView from './AiSectionView';
 import ThemeToggle from './ThemeToggle';
+import TheoryGradesView, { type TheoryGrade } from './TheoryGradesView';
 
 import theoryImg from '../assets/images/theory_physics_lesson_1794766163206.jpg';
 import videoImg from '../assets/images/video_physics_lecture_1794766163559.jpg';
@@ -175,6 +176,8 @@ export default function LaboratoriesView({
 
   const viewMode: LabViewMode = controlledViewMode ?? 'sections';
   const [activeModuleTab, setActiveModuleTab] = useState<LabSectionTab>('all');
+  const [selectedTheoryGrade, setSelectedTheoryGrade] =
+    useState<TheoryGrade | null>(null);
 
   const isAiOpen = viewMode === 'sections' && activeModuleTab === 'ai';
 
@@ -283,7 +286,7 @@ export default function LaboratoriesView({
     },
     {
       scope: rootRef,
-      dependencies: [activeLab, viewMode, activeModuleTab],
+      dependencies: [activeLab, viewMode, activeModuleTab, selectedTheoryGrade],
       revertOnUpdate: true,
     }
   );
@@ -472,6 +475,16 @@ export default function LaboratoriesView({
           </header>
 
           {viewMode === 'sections' ? (
+            activeModuleTab === 'theory' ? (
+              <TheoryGradesView
+                selectedGrade={selectedTheoryGrade}
+                onSelectGrade={setSelectedTheoryGrade}
+                onBackToSections={() => {
+                  setSelectedTheoryGrade(null);
+                  setActiveModuleTab('all');
+                }}
+              />
+            ) : (
             /* Centered compact 2x2 section cards + AI card below */
             <div
               className={`w-full mx-auto my-auto grid gap-4 py-2 ${
@@ -490,6 +503,9 @@ export default function LaboratoriesView({
                     aria-label={sec.title}
                     onClick={() => {
                       if (!focused) {
+                        if (sec.id === 'theory') {
+                          setSelectedTheoryGrade(null);
+                        }
                         setActiveModuleTab(sec.id);
                       }
                     }}
@@ -575,6 +591,7 @@ export default function LaboratoriesView({
                 );
               })}
             </div>
+            )
           ) : (
             /* 3D Simulator HUD (4 3D Experiments + Objective + Live Telemetry) */
             <div className="flex flex-wrap items-start justify-between gap-2.5">
@@ -969,7 +986,7 @@ const labWorkspaceOverrides = `
   color: #38bdf8;
 }
 
-.fizlab-neo-card {
+.gw-root .fizlab-neo-card {
   background: linear-gradient(0deg, rgb(255, 255, 255) 0%, rgb(244, 247, 251) 100%);
   border-radius: 30px;
   padding: 16px 22px;
@@ -977,15 +994,15 @@ const labWorkspaceOverrides = `
   box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 22px 24px -16px;
   transition: transform 0.22s ease-in-out, box-shadow 0.22s ease-in-out;
 }
-[data-theme="dark"] .fizlab-neo-card {
+.gw-root[data-theme="dark"] .fizlab-neo-card {
   background: linear-gradient(0deg, rgba(13, 22, 41, 0.96) 0%, rgba(20, 33, 58, 0.92) 100%);
   border-color: rgba(133, 189, 215, 0.2);
   box-shadow: rgba(2, 6, 23, 0.72) 0px 22px 24px -16px;
 }
-.fizlab-neo-card.is-interactive:hover {
+.gw-root .fizlab-neo-card.is-interactive:hover {
   transform: translateY(-2px) scale(1.012);
 }
-.fizlab-neo-card.is-interactive:active {
+.gw-root .fizlab-neo-card.is-interactive:active {
   transform: scale(0.985);
 }
 
@@ -1043,7 +1060,7 @@ const labWorkspaceOverrides = `
   border-inline-color: #12b1d1;
 }
 
-.fizlab-neo-btn {
+.gw-root .fizlab-neo-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1056,16 +1073,49 @@ const labWorkspaceOverrides = `
   cursor: pointer;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
-.fizlab-neo-btn:hover {
+.gw-root .fizlab-neo-btn:hover {
   transform: scale(1.03);
   box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 23px 10px -20px;
 }
-.fizlab-neo-btn:active {
+.gw-root .fizlab-neo-btn:active {
   transform: scale(0.95);
   box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 15px 10px -10px;
 }
-[data-theme="dark"] .fizlab-neo-btn {
+.gw-root[data-theme="dark"] .fizlab-neo-btn {
   box-shadow: rgba(14, 165, 233, 0.35) 0px 18px 16px -12px;
+}
+.gw-root .fizlab-neo-topic-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 13px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(244, 248, 252, 0.9);
+  color: #0f172a;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+.gw-root .fizlab-neo-topic-row:hover {
+  background: #e6f4fd;
+  border-color: rgba(16, 137, 211, 0.35);
+  transform: translateX(2px);
+}
+.gw-root[data-theme="dark"] .fizlab-neo-topic-row {
+  background: rgba(15, 25, 46, 0.85);
+  border-color: rgba(133, 189, 215, 0.16);
+  color: #e2e8f0;
+}
+.gw-root[data-theme="dark"] .fizlab-neo-topic-row:hover {
+  background: rgba(24, 41, 74, 0.95);
+  border-color: rgba(56, 189, 248, 0.45);
 }
 
 .gw-root.fizlab-gw-lab .fizlab-bottom-dock {
