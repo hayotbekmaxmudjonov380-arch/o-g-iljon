@@ -1,0 +1,8 @@
+{
+  "name": "FizLab — 3D Molekulyar Fizika Laboratoriyasi",
+  "description": "Molekulyar fizika jarayonlarini 3D formatda modellashtiruvchi interaktiv virtual laboratoriya, nazariya, formulalar va amaliy mashqlar majmuasi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
