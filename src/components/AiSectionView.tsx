@@ -690,7 +690,7 @@ body.jm-menu-open {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: fill;
+  object-fit: cover;
 }
 .jm-hero__inner {
   position: relative;
@@ -891,7 +891,8 @@ body.jm-menu-open {
 .jm-prompt__input {
   width: 100%;
   border: 0;
-  outline: 0;
+  outline: none;
+  box-shadow: none;
   resize: none;
   background: transparent;
   font-family: inherit;
@@ -900,6 +901,11 @@ body.jm-menu-open {
   color: var(--ink);
   min-height: clamp(54px, 9.5vh, 96px);
   padding: 2px 4px;
+}
+.jm-prompt__input:focus,
+.jm-prompt__input:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 .jm-prompt__input::placeholder {
   color: #3d3d3d;

@@ -53,6 +53,7 @@ interface LaboratoriesViewProps {
   onLogout?: () => void;
   viewMode?: LabViewMode;
   onChangeViewMode?: (mode: LabViewMode) => void;
+  onAiModeChange?: (isAiOpen: boolean) => void;
 }
 
 const LAB_MODULE_SECTIONS: {
@@ -165,6 +166,7 @@ export default function LaboratoriesView({
   onToggleTheme,
   onLogout,
   viewMode: controlledViewMode,
+  onAiModeChange,
 }: LaboratoriesViewProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const hudRef = useRef<HTMLDivElement | null>(null);
@@ -173,6 +175,13 @@ export default function LaboratoriesView({
 
   const viewMode: LabViewMode = controlledViewMode ?? 'sections';
   const [activeModuleTab, setActiveModuleTab] = useState<LabSectionTab>('all');
+
+  const isAiOpen = viewMode === 'sections' && activeModuleTab === 'ai';
+
+  useEffect(() => {
+    onAiModeChange?.(isAiOpen);
+    return () => onAiModeChange?.(false);
+  }, [isAiOpen, onAiModeChange]);
 
   const [temperatureK, setTemperatureK] = useState(300);
   const [volumeL, setVolumeL] = useState(4.0);
@@ -319,6 +328,10 @@ export default function LaboratoriesView({
 
   const tempC = Math.round(temperatureK - 273.15);
 
+  if (isAiOpen) {
+    return <AiSectionView onBack={() => setActiveModuleTab('all')} />;
+  }
+
   return (
     <div
       ref={rootRef}
@@ -364,11 +377,6 @@ export default function LaboratoriesView({
       )}
 
       {/* Glass Workspace Overlay */}
-      {viewMode === 'sections' && activeModuleTab === 'ai' ? (
-        <div className="relative z-10 w-full h-full">
-          <AiSectionView onBack={() => setActiveModuleTab('all')} />
-        </div>
-      ) : (
       <div
         ref={hudRef}
         className={`relative z-10 flex flex-col justify-between h-full p-3 sm:p-4 ${
@@ -872,7 +880,6 @@ export default function LaboratoriesView({
           </div>
         )}
       </div>
-      )}
     </div>
   );
 }

@@ -45,6 +45,7 @@ export default function App() {
   const [labViewMode, setLabViewMode] = useState<'sections' | 'simulator'>(
     'sections'
   );
+  const [aiFullScreen, setAiFullScreen] = useState(false);
 
   const [solvedIds, setSolvedIds] = useState<string[]>(() => {
     try {
@@ -82,12 +83,14 @@ export default function App() {
       setActiveSection(section);
     }
     setLabViewMode('sections');
+    setAiFullScreen(false);
     setShowIntro(false);
   }, []);
 
   const handleOpenLabFromTheory = useCallback((labId: LabExperimentId) => {
     setActiveLab(labId);
     setLabViewMode('simulator');
+    setAiFullScreen(false);
     setActiveSection('laboratoriya');
   }, []);
 
@@ -97,6 +100,7 @@ export default function App() {
 
   const handleLoginSuccess = useCallback((user: string) => {
     setAuthUser(user);
+    setAiFullScreen(false);
     setShowIntro(true);
     try {
       sessionStorage.setItem(AUTH_STORAGE_KEY, user);
@@ -107,6 +111,7 @@ export default function App() {
 
   const handleLogout = useCallback(() => {
     setAuthUser(null);
+    setAiFullScreen(false);
     setShowIntro(true);
     try {
       sessionStorage.removeItem(AUTH_STORAGE_KEY);
@@ -162,12 +167,20 @@ export default function App() {
         />
       </div>
 
-      {/* Full-Width Workspace Frame (No Sidebar / Menu) */}
-      <div className="relative z-10 flex h-full w-full p-2.5 sm:p-4">
+      {/* Full-Width Workspace Frame (Edge-to-edge when AI view is active) */}
+      <div
+        className={`relative z-10 flex h-full w-full ${
+          aiFullScreen && activeSection === 'laboratoriya'
+            ? 'p-0'
+            : 'p-2.5 sm:p-4'
+        }`}
+      >
         <main
-          className={`flex-1 min-w-0 min-h-0 rounded-3xl overflow-hidden ${
-            activeSection === 'laboratoriya' ? '' : 'glass-panel-subtle'
-          }`}
+          className={`flex-1 min-w-0 min-h-0 overflow-hidden ${
+            aiFullScreen && activeSection === 'laboratoriya'
+              ? 'rounded-none'
+              : 'rounded-3xl'
+          } ${activeSection === 'laboratoriya' ? '' : 'glass-panel-subtle'}`}
         >
           <Suspense fallback={<ViewLoader />}>
             {activeSection === 'nazariya' && (
@@ -190,6 +203,7 @@ export default function App() {
                 onLogout={handleLogout}
                 viewMode={labViewMode}
                 onChangeViewMode={setLabViewMode}
+                onAiModeChange={setAiFullScreen}
               />
             )}
           </Suspense>
