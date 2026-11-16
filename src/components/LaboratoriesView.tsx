@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   Atom,
   BookOpen,
+  Box,
   Camera,
   ChevronDown,
   ChevronUp,
@@ -39,11 +40,19 @@ import theoryImg from '../assets/images/theory_physics_lesson_1794766163206.jpg'
 import videoImg from '../assets/images/video_physics_lecture_1794766163559.jpg';
 import testsImg from '../assets/images/physics_quiz_test_1794766165407.jpg';
 import libraryImg from '../assets/images/physics_digital_library_1794766164428.jpg';
+import simulationImg from '../assets/images/physics_3d_simulation_1794845647265.jpg';
 import aiImg from '../assets/images/ai_physics_assistant_1794766165894.jpg';
 
 gsap.registerPlugin(useGSAP);
 
-type LabSectionTab = 'all' | 'theory' | 'video' | 'tests' | 'library' | 'ai';
+type LabSectionTab =
+  | 'all'
+  | 'theory'
+  | 'video'
+  | 'tests'
+  | 'library'
+  | 'simulation'
+  | 'ai';
 type LabViewMode = 'sections' | 'simulator';
 
 interface LaboratoriesViewProps {
@@ -91,6 +100,13 @@ const LAB_MODULE_SECTIONS: {
     icon: Library,
     image: libraryImg,
     imageAlt: 'Kutubxona — fizika adabiyotlari va prizma modeli',
+  },
+  {
+    id: 'simulation',
+    title: 'Simulyatsiya',
+    icon: Box,
+    image: simulationImg,
+    imageAlt: 'Simulyatsiya — fizika bo‘limlarining 3D grafik animatsiyalari',
   },
   {
     id: 'ai',
@@ -484,8 +500,35 @@ export default function LaboratoriesView({
                   setActiveModuleTab('all');
                 }}
               />
+            ) : activeModuleTab === 'simulation' ? (
+              <div className="w-full max-w-[880px] mx-auto my-auto py-2 space-y-4">
+                <div className="fizlab-neo-card gw-reveal">
+                  <div className="flex items-center justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-3">
+                      <span className="fizlab-neo-icon">
+                        <Box size={16} strokeWidth={2} aria-hidden="true" />
+                      </span>
+                      <h2 className="fizlab-neo-heading">Simulyatsiya</h2>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveModuleTab('all')}
+                      className="fizlab-neo-btn !w-auto !m-0 !px-4 !py-2 text-xs inline-flex items-center gap-1.5 whitespace-nowrap shrink-0"
+                    >
+                      <ArrowLeft size={14} aria-hidden="true" />
+                      <span>Orqaga</span>
+                    </button>
+                  </div>
+
+                  <div
+                    className="fizlab-neo-well min-h-[380px]"
+                    aria-label="Simulyatsiya bo‘limi"
+                  />
+                </div>
+              </div>
             ) : (
-            /* Centered compact 2x2 section cards + AI card below */
+            /* Balanced 3x2 section cards */
             <div
               className={`w-full mx-auto my-auto grid gap-4 py-2 ${
                 activeModuleTab === 'all'
@@ -510,8 +553,8 @@ export default function LaboratoriesView({
                       }
                     }}
                     className={`group fizlab-neo-card gw-reveal ${
-                      isAiCard && !focused ? 'sm:col-span-2' : ''
-                    } ${!focused ? 'cursor-pointer is-interactive' : ''}`}
+                      !focused ? 'cursor-pointer is-interactive' : ''
+                    }`}
                   >
                     <div className="flex items-center justify-between gap-3 mb-3">
                       <div className="flex items-center gap-3">
@@ -524,6 +567,20 @@ export default function LaboratoriesView({
                         </span>
                         <h2 className="fizlab-neo-heading">{sec.title}</h2>
                       </div>
+
+                      {isAiCard && !focused && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveModuleTab('ai');
+                          }}
+                          className="fizlab-neo-btn !w-auto !m-0 !px-3.5 !py-2 text-xs inline-flex items-center gap-1.5 whitespace-nowrap shrink-0"
+                        >
+                          <Sparkles size={13} aria-hidden="true" />
+                          <span>AI bo‘limiga kirish</span>
+                        </button>
+                      )}
 
                       {focused && (
                         <button
@@ -540,53 +597,27 @@ export default function LaboratoriesView({
                       )}
                     </div>
 
-                    {isAiCard && !focused ? (
-                      <div className="fizlab-neo-well !p-2 flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <div className="w-full sm:w-[240px] h-[102px] rounded-[14px] overflow-hidden bg-sky-50/70 dark:bg-slate-900/70 shrink-0">
-                          <img
-                            src={sec.image}
-                            alt={sec.imageAlt}
-                            referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
-                          />
-                        </div>
-                        <div className="w-full sm:w-auto flex justify-end px-1 pb-1 sm:pb-0 sm:pr-2">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveModuleTab('ai');
-                            }}
-                            className="fizlab-neo-btn !w-full sm:!w-auto !m-0 !px-6 !py-3 text-xs inline-flex items-center justify-center gap-1.5 shrink-0"
-                          >
-                            <Sparkles size={14} aria-hidden="true" />
-                            <span>AI bo‘limiga kirish</span>
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
+                    <div
+                      className={`fizlab-neo-well !p-1.5 overflow-hidden ${
+                        focused ? 'space-y-3' : ''
+                      }`}
+                    >
                       <div
-                        className={`fizlab-neo-well !p-1.5 overflow-hidden ${
-                          focused ? 'space-y-3' : ''
+                        className={`w-full rounded-[14px] overflow-hidden bg-sky-50/70 dark:bg-slate-900/70 ${
+                          focused
+                            ? 'h-[200px] sm:h-[240px]'
+                            : 'h-[126px] sm:h-[138px]'
                         }`}
                       >
-                        <div
-                          className={`w-full rounded-[14px] overflow-hidden bg-sky-50/70 dark:bg-slate-900/70 ${
-                            focused
-                              ? 'h-[200px] sm:h-[240px]'
-                              : 'h-[126px] sm:h-[138px]'
-                          }`}
-                        >
-                          <img
-                            src={sec.image}
-                            alt={sec.imageAlt}
-                            referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
-                          />
-                        </div>
-                        {focused && <div className="min-h-[120px]" />}
+                        <img
+                          src={sec.image}
+                          alt={sec.imageAlt}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                        />
                       </div>
-                    )}
+                      {focused && <div className="min-h-[120px]" />}
+                    </div>
                   </section>
                 );
               })}

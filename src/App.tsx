@@ -1,24 +1,16 @@
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import AppErrorBoundary from './components/AppErrorBoundary';
+import ExercisesView from './components/ExercisesView';
+import FormulasView from './components/FormulasView';
+import IntroPortal from './components/IntroPortal';
+import LaboratoriesView from './components/LaboratoriesView';
 import LoginPage from './components/LoginPage';
+import TheoryView from './components/TheoryView';
 import { FizLabTheme, LabExperimentId, WorkspaceSection } from './types/fizlab';
-
-const IntroPortal = lazy(() => import('./components/IntroPortal'));
-const LaboratoriesView = lazy(() => import('./components/LaboratoriesView'));
-const TheoryView = lazy(() => import('./components/TheoryView'));
-const FormulasView = lazy(() => import('./components/FormulasView'));
-const ExercisesView = lazy(() => import('./components/ExercisesView'));
 
 const SOLVED_STORAGE_KEY = 'fizlab_solved_exercises_v1';
 const THEME_STORAGE_KEY = 'fizlab_theme_v1';
 const AUTH_STORAGE_KEY = 'fizlab_auth_user_v1';
-
-function ViewLoader() {
-  return (
-    <div className="w-full h-full flex items-center justify-center text-sm text-slate-600 dark:text-slate-400">
-      Yuklanmoqda...
-    </div>
-  );
-}
 
 export default function App() {
   const [theme, setTheme] = useState<FizLabTheme>(() => {
@@ -121,27 +113,28 @@ export default function App() {
   }, []);
 
   if (!authUser) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+    return (
+      <AppErrorBoundary>
+        <LoginPage onLoginSuccess={handleLoginSuccess} />
+      </AppErrorBoundary>
+    );
   }
 
   if (showIntro) {
     return (
-      <Suspense
-        fallback={
-          <div className="h-screen w-full bg-[#e9f1fa] dark:bg-[#060a14]" />
-        }
-      >
+      <AppErrorBoundary>
         <IntroPortal
           theme={theme}
           onToggleTheme={toggleTheme}
           onEnterWorkspace={handleEnterWorkspace}
         />
-      </Suspense>
+      </AppErrorBoundary>
     );
   }
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-[#eef4fb] dark:bg-[#060a14] text-slate-900 dark:text-slate-100 transition-colors duration-200">
+    <AppErrorBoundary>
+      <div className="relative h-screen w-full overflow-hidden bg-[#eef4fb] dark:bg-[#060a14] text-slate-900 dark:text-slate-100 transition-colors duration-200">
       {/* Ambient Glassmorphism Backdrop Light Orbs */}
       <div
         aria-hidden="true"
@@ -182,33 +175,32 @@ export default function App() {
               : 'rounded-3xl'
           } ${activeSection === 'laboratoriya' ? '' : 'glass-panel-subtle'}`}
         >
-          <Suspense fallback={<ViewLoader />}>
-            {activeSection === 'nazariya' && (
-              <TheoryView onOpenLab={handleOpenLabFromTheory} />
-            )}
-            {activeSection === 'formulalar' && <FormulasView />}
-            {activeSection === 'mashqlar' && (
-              <ExercisesView
-                solvedIds={solvedIds}
-                onMarkSolved={handleMarkSolved}
-                onResetProgress={() => setSolvedIds([])}
-              />
-            )}
-            {activeSection === 'laboratoriya' && (
-              <LaboratoriesView
-                activeLab={activeLab}
-                onSelectLab={setActiveLab}
-                theme={theme}
-                onToggleTheme={toggleTheme}
-                onLogout={handleLogout}
-                viewMode={labViewMode}
-                onChangeViewMode={setLabViewMode}
-                onAiModeChange={setAiFullScreen}
-              />
-            )}
-          </Suspense>
+          {activeSection === 'nazariya' && (
+            <TheoryView onOpenLab={handleOpenLabFromTheory} />
+          )}
+          {activeSection === 'formulalar' && <FormulasView />}
+          {activeSection === 'mashqlar' && (
+            <ExercisesView
+              solvedIds={solvedIds}
+              onMarkSolved={handleMarkSolved}
+              onResetProgress={() => setSolvedIds([])}
+            />
+          )}
+          {activeSection === 'laboratoriya' && (
+            <LaboratoriesView
+              activeLab={activeLab}
+              onSelectLab={setActiveLab}
+              theme={theme}
+              onToggleTheme={toggleTheme}
+              onLogout={handleLogout}
+              viewMode={labViewMode}
+              onChangeViewMode={setLabViewMode}
+              onAiModeChange={setAiFullScreen}
+            />
+          )}
         </main>
       </div>
-    </div>
+      </div>
+    </AppErrorBoundary>
   );
 }
