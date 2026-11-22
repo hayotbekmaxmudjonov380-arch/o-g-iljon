@@ -33,6 +33,7 @@ import {
 } from '../three/MolecularLabEngine';
 import { FizLabTheme, LabExperimentId, LabTelemetry } from '../types/fizlab';
 import AiSectionView from './AiSectionView';
+import TestsGradesView, { type TestGrade } from './TestsGradesView';
 import ThemeToggle from './ThemeToggle';
 import TheoryGradesView, { type TheoryGrade } from './TheoryGradesView';
 
@@ -194,6 +195,8 @@ export default function LaboratoriesView({
   const [activeModuleTab, setActiveModuleTab] = useState<LabSectionTab>('all');
   const [selectedTheoryGrade, setSelectedTheoryGrade] =
     useState<TheoryGrade | null>(null);
+  const [selectedTestGrade, setSelectedTestGrade] =
+    useState<TestGrade | null>(null);
 
   const isAiOpen = viewMode === 'sections' && activeModuleTab === 'ai';
 
@@ -500,6 +503,15 @@ export default function LaboratoriesView({
                   setActiveModuleTab('all');
                 }}
               />
+            ) : activeModuleTab === 'tests' ? (
+              <TestsGradesView
+                selectedGrade={selectedTestGrade}
+                onSelectGrade={setSelectedTestGrade}
+                onBackToSections={() => {
+                  setSelectedTestGrade(null);
+                  setActiveModuleTab('all');
+                }}
+              />
             ) : activeModuleTab === 'simulation' ? (
               <div className="w-full max-w-[880px] mx-auto my-auto py-2 space-y-4">
                 <div className="fizlab-neo-card gw-reveal">
@@ -548,6 +560,9 @@ export default function LaboratoriesView({
                       if (!focused) {
                         if (sec.id === 'theory') {
                           setSelectedTheoryGrade(null);
+                        }
+                        if (sec.id === 'tests') {
+                          setSelectedTestGrade(null);
                         }
                         setActiveModuleTab(sec.id);
                       }
@@ -1146,6 +1161,136 @@ const labWorkspaceOverrides = `
 }
 .gw-root[data-theme="dark"] .fizlab-neo-topic-row:hover {
   background: rgba(24, 41, 74, 0.95);
+  border-color: rgba(56, 189, 248, 0.45);
+}
+
+.gw-root .fizlab-quiz-scope {
+  letter-spacing: 0;
+}
+
+.gw-root .fizlab-quiz-num-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: #f8fafc;
+  color: #334155;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.gw-root .fizlab-quiz-num-btn:hover {
+  border-color: rgba(2, 132, 199, 0.55);
+  background: #f0f9ff;
+}
+.gw-root .fizlab-quiz-num-btn[data-answered="true"] {
+  background: #e0f2fe;
+  border-color: #38bdf8;
+  color: #0369a1;
+}
+.gw-root .fizlab-quiz-num-btn[data-active="true"] {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+}
+.gw-root[data-theme="dark"] .fizlab-quiz-num-btn {
+  background: rgba(15, 23, 42, 0.75);
+  border-color: rgba(148, 163, 184, 0.24);
+  color: #cbd5e1;
+}
+.gw-root[data-theme="dark"] .fizlab-quiz-num-btn:hover {
+  border-color: rgba(56, 189, 248, 0.6);
+  background: rgba(30, 41, 59, 0.9);
+}
+.gw-root[data-theme="dark"] .fizlab-quiz-num-btn[data-answered="true"] {
+  background: rgba(14, 165, 233, 0.16);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #bae6fd;
+}
+.gw-root[data-theme="dark"] .fizlab-quiz-num-btn[data-active="true"] {
+  background: #38bdf8;
+  border-color: #38bdf8;
+  color: #04111f;
+}
+
+.gw-root .fizlab-quiz-option {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 13px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: #ffffff;
+  color: #0f172a;
+  text-align: left;
+  letter-spacing: 0;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.gw-root .fizlab-quiz-option:hover {
+  background: #f0f9ff;
+  border-color: rgba(2, 132, 199, 0.45);
+}
+.gw-root .fizlab-quiz-option[aria-pressed="true"] {
+  background: #e0f2fe;
+  border-color: #0284c7;
+  box-shadow: inset 0 0 0 1px #0284c7;
+}
+.gw-root[data-theme="dark"] .fizlab-quiz-option {
+  background: rgba(10, 18, 36, 0.78);
+  border-color: rgba(148, 163, 184, 0.2);
+  color: #e2e8f0;
+}
+.gw-root[data-theme="dark"] .fizlab-quiz-option:hover {
+  background: rgba(20, 34, 64, 0.9);
+  border-color: rgba(56, 189, 248, 0.48);
+}
+.gw-root[data-theme="dark"] .fizlab-quiz-option[aria-pressed="true"] {
+  background: rgba(14, 165, 233, 0.16);
+  border-color: #38bdf8;
+  box-shadow: inset 0 0 0 1px #38bdf8;
+  color: #ffffff;
+}
+
+.gw-root .fizlab-quiz-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.gw-root .fizlab-quiz-secondary-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: rgba(15, 23, 42, 0.28);
+}
+.gw-root .fizlab-quiz-secondary-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.gw-root[data-theme="dark"] .fizlab-quiz-secondary-btn {
+  background: rgba(15, 25, 46, 0.85);
+  border-color: rgba(148, 163, 184, 0.24);
+  color: #e2e8f0;
+}
+.gw-root[data-theme="dark"] .fizlab-quiz-secondary-btn:hover:not(:disabled) {
+  background: rgba(30, 46, 80, 0.95);
   border-color: rgba(56, 189, 248, 0.45);
 }
 
