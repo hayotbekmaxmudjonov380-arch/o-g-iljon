@@ -10,6 +10,8 @@ import { GRADE_8_CURRICULUM } from '../data/grade8Curriculum';
 import { GRADE_9_CURRICULUM } from '../data/grade9Curriculum';
 import { GRADE_10_CURRICULUM } from '../data/grade10Curriculum';
 import { GRADE_11_CURRICULUM } from '../data/grade11Curriculum';
+import { GRADE_7_THEORY_CONTENT } from '../data/grade7TheoryContent';
+import TopicContent from './TopicContent';
 
 export const THEORY_GRADES = [7, 8, 9, 10, 11] as const;
 export type TheoryGrade = (typeof THEORY_GRADES)[number];
@@ -86,8 +88,17 @@ export default function TheoryGradesView({
   const curriculum = getCurriculumForGrade(selectedGrade);
 
   if (curriculum && selectedTopic) {
+    const topicBlocks =
+      selectedGrade === 7
+        ? GRADE_7_THEORY_CONTENT[selectedTopic.topic.id]
+        : undefined;
+
     return (
-      <div className="w-full max-w-[880px] mx-auto my-auto py-2 space-y-4">
+      <div
+        className={`w-full max-w-[880px] mx-auto space-y-4 ${
+          topicBlocks ? 'pt-1 pb-6' : 'my-auto py-2'
+        }`}
+      >
         <div className="fizlab-neo-card gw-reveal">
           <div className="flex items-start sm:items-center justify-between gap-3 mb-4">
             <div className="flex items-start sm:items-center gap-3 min-w-0">
@@ -117,9 +128,11 @@ export default function TheoryGradesView({
           </div>
 
           <div
-            className="fizlab-neo-well min-h-[360px]"
+            className={`fizlab-neo-well ${topicBlocks ? '!p-4 sm:!p-6' : 'min-h-[360px]'}`}
             aria-label={`${selectedTopic.topic.title} bo‘limi`}
-          />
+          >
+            {topicBlocks && <TopicContent blocks={topicBlocks} />}
+          </div>
         </div>
       </div>
     );
