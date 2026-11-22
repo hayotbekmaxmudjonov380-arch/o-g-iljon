@@ -76,7 +76,7 @@ function renderTheoryBlock(block: TheoryBlock, key: number) {
       return (
         <p
           key={key}
-          className="text-slate-700 dark:text-slate-200/90 leading-[1.72]"
+          className="text-slate-700 dark:text-slate-200/90 leading-[1.72] whitespace-pre-line"
         >
           {block.text}
         </p>
@@ -144,12 +144,12 @@ function renderTheoryBlock(block: TheoryBlock, key: number) {
       return (
         <section
           key={key}
-          aria-label="Savol va topshiriqlar"
+          aria-label={block.title ?? 'Savol va topshiriqlar'}
           className="rounded-2xl border border-slate-900/10 dark:border-white/10 bg-slate-900/[0.03] dark:bg-white/[0.03] px-4 py-3.5 space-y-2.5"
         >
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">
             <HelpCircle size={14} strokeWidth={2} aria-hidden="true" />
-            <span>Savol va topshiriqlar</span>
+            <span>{block.title ?? 'Savol va topshiriqlar'}</span>
           </div>
           <ol className="space-y-2">
             {block.items.map((q, idx) => (

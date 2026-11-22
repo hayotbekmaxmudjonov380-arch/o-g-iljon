@@ -50,7 +50,7 @@ def find_caption_rects(page: pymupdf.Page) -> list[tuple[int, pymupdf.Rect]]:
     while i < len(lines):
         rect, text, size, is_bold = lines[i]
         m = CAPTION_START_RE.match(text)
-        if m and size <= 11.2 and (is_bold or text.startswith(f"{m.group(1)}-rasm.")):
+        if m and size <= 11.8 and (is_bold or text.startswith(f"{m.group(1)}-rasm.")):
             fig_num = int(m.group(1))
             cap_rect = pymupdf.Rect(rect)
             j = i + 1
@@ -58,10 +58,10 @@ def find_caption_rects(page: pymupdf.Page) -> list[tuple[int, pymupdf.Rect]]:
                 nrect, ntext, nsize, _ = lines[j]
                 if CAPTION_START_RE.match(ntext):
                     break
-                # Continuation line of same caption: directly below, similar size, overlapping x range
+                # Continuation line of same caption: directly below (or overlapping leading), similar size, overlapping x range
                 if (
-                    nsize <= 11.2
-                    and 0 <= (nrect.y0 - cap_rect.y1) <= 6.0
+                    nsize <= 11.8
+                    and -4.0 <= (nrect.y0 - cap_rect.y1) <= 6.0
                     and nrect.x0 < cap_rect.x1 + 25
                     and nrect.x1 > cap_rect.x0 - 25
                 ):
@@ -104,13 +104,22 @@ def collect_small_labels_and_drawings(
     page: pymupdf.Page,
     anchor: pymupdf.Rect,
     cap_rect: pymupdf.Rect,
+    all_captions: list[tuple[int, pymupdf.Rect]],
 ) -> pymupdf.Rect:
     clip = pymupdf.Rect(anchor)
+    min_y0 = 63.0
+    for _, other_cap in all_captions:
+        # Prevent expanding upward into an earlier caption above this figure
+        if other_cap.y1 <= anchor.y0 + 2.0 and other_cap.intersects(
+            pymupdf.Rect(anchor.x0 - 40.0, 0.0, anchor.x1 + 40.0, page.rect.height)
+        ):
+            min_y0 = max(min_y0, other_cap.y1 + 1.5)
+
     search_pad = pymupdf.Rect(
-        anchor.x0 - 22.0,
-        anchor.y0 - 22.0,
-        anchor.x1 + 22.0,
-        min(anchor.y1 + 12.0, cap_rect.y0 - 0.5),
+        anchor.x0 - 12.0,
+        max(min_y0, anchor.y0 - 14.0),
+        anchor.x1 + 12.0,
+        min(anchor.y1 + 14.0, cap_rect.y0 - 0.5),
     )
 
     # Include nearby vector drawings (axes, arrows, arcs), skip full-width horizontal rules
@@ -118,33 +127,70 @@ def collect_small_labels_and_drawings(
         r = pymupdf.Rect(d["rect"])
         if r.width > 300 and r.height < 4:
             continue
-        if r.intersects(search_pad) and r.y1 <= cap_rect.y0:
+        if r.intersects(search_pad) and r.y1 <= cap_rect.y0 and r.y0 >= min_y0 - 1.0:
             clip |= r
 
-    # Include small figure labels (x, y, z, o, A, B, etc. with size <= 11.5)
+    # Include figure labels (x, y, z, o, A, B, C, F1, s1, v2, etc.), excluding captions & prose blocks
     text_dict = page.get_text("dict")
     for b in text_dict["blocks"]:
         if b["type"] != 0:
             continue
+        block_text = " ".join(
+            "".join(s["text"] for s in line["spans"]).strip()
+            for line in b["lines"]
+        ).strip()
+        # Skip body paragraphs and multi-word captions
+        if len(block_text) > 22:
+            continue
         for line in b["lines"]:
+            lrect = pymupdf.Rect(line["bbox"])
+            ltext = "".join(s["text"] for s in line["spans"]).strip()
+            if not ltext or lrect.y0 < min_y0 or lrect.y1 > 645.0:
+                continue
+            if any(
+                lrect.intersects(pymupdf.Rect(cr.x0 - 2, cr.y0 - 2, cr.x1 + 2, cr.y1 + 2))
+                for _, cr in all_captions
+            ):
+                continue
+            lwidth = lrect.width
             for s in line["spans"]:
-                if not s["text"].strip():
+                stext = s["text"].strip()
+                if not stext:
                     continue
-                if s["size"] > 11.55:
+                is_small_label = s["size"] <= 11.55 and lwidth <= 55.0
+                is_math_token = (
+                    s["size"] <= 13.0
+                    and lwidth <= 22.0
+                    and len(ltext) <= 6
+                    and not any(ch in ltext for ch in (".", ",", ";", ":"))
+                )
+                if not (is_small_label or is_math_token):
                     continue
                 sr = pymupdf.Rect(s["bbox"])
-                # Skip running headers/footers and caption region itself
-                if sr.y0 < 63.0 or sr.y1 > 645.0:
-                    continue
-                if sr.intersects(pymupdf.Rect(cap_rect.x0 - 2, cap_rect.y0 - 2, cap_rect.x1 + 2, cap_rect.y1 + 2)):
-                    continue
-                if sr.intersects(search_pad) and sr.y0 < cap_rect.y0 - 1.0:
+                if sr.intersects(search_pad) and sr.y0 < cap_rect.y0 - 0.5:
                     clip |= sr
 
-    clip.x0 = max(0.0, clip.x0 - 4.0)
-    clip.y0 = max(0.0, clip.y0 - 4.0)
-    clip.x1 = min(page.rect.width, clip.x1 + 4.0)
-    clip.y1 = min(clip.y1 + 2.0, cap_rect.y0 - 0.5)
+    # Avoid padding into adjacent body text columns outside the figure
+    pad_left = 4.0
+    pad_right = 4.0
+    pad_top = 2.0
+    for b in text_dict["blocks"]:
+        if b["type"] != 0:
+            continue
+        for line in b["lines"]:
+            lr = pymupdf.Rect(line["bbox"])
+            ltext = "".join(s["text"] for s in line["spans"]).strip()
+            if not ltext or lr.y1 < clip.y0 - 4.0 or lr.y0 > clip.y1 + 4.0:
+                continue
+            if lr.width > 40.0 and lr.x0 >= clip.x1 - 1.0 and lr.x0 <= clip.x1 + 5.0:
+                pad_right = min(pad_right, max(0.0, lr.x0 - clip.x1 - 0.5))
+            if lr.width > 40.0 and lr.x1 <= clip.x0 + 1.0 and lr.x1 >= clip.x0 - 5.0:
+                pad_left = min(pad_left, max(0.0, clip.x0 - lr.x1 - 0.5))
+
+    clip.x0 = max(0.0, clip.x0 - pad_left)
+    clip.y0 = max(min_y0 + 1.0 if min_y0 > 63.0 else 0.0, clip.y0 - pad_top)
+    clip.x1 = min(page.rect.width, clip.x1 + pad_right)
+    clip.y1 = min(clip.y1 + 2.5, cap_rect.y0 - 0.5)
     return clip
 
 
@@ -166,7 +212,7 @@ def render_figures(
             anchor = pick_anchor_image(page, cap_rect)
             if anchor is None:
                 continue
-            clip = collect_small_labels_and_drawings(page, anchor, cap_rect)
+            clip = collect_small_labels_and_drawings(page, anchor, cap_rect, captions)
             if clip.width <= 1 or clip.height <= 1:
                 continue
             pix = page.get_pixmap(
