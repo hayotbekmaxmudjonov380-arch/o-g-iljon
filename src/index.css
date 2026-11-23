@@ -346,3 +346,137 @@ input[type='range'].fiz-slider::-moz-range-thumb {
     transform: translateY(0);
   }
 }
+
+/* Scoped Library class category filter tabs & search input (beats .gw-root button/input resets) */
+.fizlab-quiz-scope .fizlab-lib-tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #eff4fa;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.dark .fizlab-quiz-scope .fizlab-lib-tab-bar {
+  border-color: rgba(148, 163, 184, 0.2);
+  background: rgba(9, 15, 30, 0.85);
+}
+
+.fizlab-quiz-scope .fizlab-lib-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.fizlab-quiz-scope .fizlab-lib-tab:hover {
+  background: rgba(255, 255, 255, 0.78);
+  color: #0f172a;
+}
+
+.fizlab-quiz-scope .fizlab-lib-tab[aria-pressed='true'] {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.28);
+}
+
+.dark .fizlab-quiz-scope .fizlab-lib-tab {
+  color: #cbd5e1;
+}
+
+.dark .fizlab-quiz-scope .fizlab-lib-tab:hover {
+  background: rgba(30, 41, 59, 0.85);
+  color: #f8fafc;
+}
+
+.dark .fizlab-quiz-scope .fizlab-lib-tab[aria-pressed='true'] {
+  background: #38bdf8;
+  border-color: #38bdf8;
+  color: #04111f;
+  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.25);
+}
+
+.fizlab-quiz-scope .fizlab-lib-search {
+  width: 100%;
+  height: 38px;
+  padding: 0 32px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fizlab-quiz-scope .fizlab-lib-search::placeholder {
+  color: #64748b;
+}
+
+.fizlab-quiz-scope .fizlab-lib-search:focus {
+  outline: none;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.16);
+}
+
+.dark .fizlab-quiz-scope .fizlab-lib-search {
+  border-color: rgba(148, 163, 184, 0.24);
+  background: rgba(10, 18, 36, 0.9);
+  color: #f1f5f9;
+}
+
+.dark .fizlab-quiz-scope .fizlab-lib-search::placeholder {
+  color: #94a3b8;
+}
+
+.dark .fizlab-quiz-scope .fizlab-lib-search:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+}
+
+.fizlab-quiz-scope .fizlab-lib-clear-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.fizlab-quiz-scope .fizlab-lib-clear-btn:hover {
+  background: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
+.dark .fizlab-quiz-scope .fizlab-lib-clear-btn {
+  color: #94a3b8;
+}
+
+.dark .fizlab-quiz-scope .fizlab-lib-clear-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+}
+

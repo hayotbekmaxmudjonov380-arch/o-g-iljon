@@ -4,6 +4,7 @@ export type WorkspaceSection =
   | 'nazariya'
   | 'formulalar'
   | 'mashqlar'
+  | 'kutubxona'
   | 'laboratoriya';
 
 export type LabExperimentId =

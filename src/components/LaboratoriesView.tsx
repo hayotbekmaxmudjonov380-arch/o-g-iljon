@@ -33,6 +33,8 @@ import {
 } from '../three/MolecularLabEngine';
 import { FizLabTheme, LabExperimentId, LabTelemetry } from '../types/fizlab';
 import AiSectionView from './AiSectionView';
+import LibraryView from './LibraryView';
+import type { LibraryGrade } from '../data/libraryBooksData';
 import TestsGradesView, { type TestGrade } from './TestsGradesView';
 import ThemeToggle from './ThemeToggle';
 import TheoryGradesView, { type TheoryGrade } from './TheoryGradesView';
@@ -197,6 +199,8 @@ export default function LaboratoriesView({
     useState<TheoryGrade | null>(null);
   const [selectedTestGrade, setSelectedTestGrade] =
     useState<TestGrade | null>(null);
+  const [selectedLibraryGrade, setSelectedLibraryGrade] =
+    useState<LibraryGrade | null>(null);
 
   const isAiOpen = viewMode === 'sections' && activeModuleTab === 'ai';
 
@@ -512,6 +516,15 @@ export default function LaboratoriesView({
                   setActiveModuleTab('all');
                 }}
               />
+            ) : activeModuleTab === 'library' ? (
+              <LibraryView
+                selectedGrade={selectedLibraryGrade}
+                onSelectGrade={setSelectedLibraryGrade}
+                onBackToSections={() => {
+                  setSelectedLibraryGrade(null);
+                  setActiveModuleTab('all');
+                }}
+              />
             ) : activeModuleTab === 'simulation' ? (
               <div className="w-full max-w-[880px] mx-auto my-auto py-2 space-y-4">
                 <div className="fizlab-neo-card gw-reveal">
@@ -563,6 +576,9 @@ export default function LaboratoriesView({
                         }
                         if (sec.id === 'tests') {
                           setSelectedTestGrade(null);
+                        }
+                        if (sec.id === 'library') {
+                          setSelectedLibraryGrade(null);
                         }
                         setActiveModuleTab(sec.id);
                       }
@@ -1292,6 +1308,83 @@ const labWorkspaceOverrides = `
 .gw-root[data-theme="dark"] .fizlab-quiz-secondary-btn:hover:not(:disabled) {
   background: rgba(30, 46, 80, 0.95);
   border-color: rgba(56, 189, 248, 0.45);
+}
+
+.gw-root .fizlab-lib-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.gw-root .fizlab-lib-btn:hover:not(:disabled) {
+  background: #f0f9ff;
+  border-color: rgba(2, 132, 199, 0.45);
+}
+.gw-root .fizlab-lib-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.gw-root[data-theme="dark"] .fizlab-lib-btn {
+  background: rgba(15, 25, 46, 0.85);
+  border-color: rgba(148, 163, 184, 0.24);
+  color: #e2e8f0;
+}
+.gw-root[data-theme="dark"] .fizlab-lib-btn:hover:not(:disabled) {
+  background: rgba(30, 46, 80, 0.95);
+  border-color: rgba(56, 189, 248, 0.45);
+}
+
+.gw-root .fizlab-lib-select {
+  height: 36px;
+  max-width: 100%;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.gw-root[data-theme="dark"] .fizlab-lib-select {
+  background: rgba(15, 25, 46, 0.9);
+  border-color: rgba(148, 163, 184, 0.24);
+  color: #e2e8f0;
+}
+
+.gw-root .fizlab-lib-input {
+  width: 52px;
+  height: 36px;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0;
+}
+.gw-root[data-theme="dark"] .fizlab-lib-input {
+  background: rgba(15, 25, 46, 0.9);
+  border-color: rgba(148, 163, 184, 0.24);
+  color: #f1f5f9;
 }
 
 .gw-root.fizlab-gw-lab .fizlab-bottom-dock {

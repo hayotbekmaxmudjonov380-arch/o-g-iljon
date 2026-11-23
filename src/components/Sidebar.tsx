@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   FlaskConical,
+  Library,
   LogOut,
   PenTool,
   Sparkles,
@@ -52,6 +53,12 @@ const MENU_ITEMS: {
     label: 'Amaliy mashqlar',
     subtitle: 'Masalalar va tekshiruv',
     icon: PenTool,
+  },
+  {
+    id: 'kutubxona',
+    label: 'Kutubxona',
+    subtitle: 'Sinflar bo‘yicha darsliklar',
+    icon: Library,
   },
   {
     id: 'laboratoriya',

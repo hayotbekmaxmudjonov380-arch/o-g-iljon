@@ -4,6 +4,7 @@ import ExercisesView from './components/ExercisesView';
 import FormulasView from './components/FormulasView';
 import IntroPortal from './components/IntroPortal';
 import LaboratoriesView from './components/LaboratoriesView';
+import LibraryView from './components/LibraryView';
 import LoginPage from './components/LoginPage';
 import TheoryView from './components/TheoryView';
 import { FizLabTheme, LabExperimentId, WorkspaceSection } from './types/fizlab';
@@ -185,6 +186,13 @@ export default function App() {
               onMarkSolved={handleMarkSolved}
               onResetProgress={() => setSolvedIds([])}
             />
+          )}
+          {activeSection === 'kutubxona' && (
+            <div className="h-full overflow-y-auto p-3 sm:p-5">
+              <LibraryView
+                onBackToSections={() => setActiveSection('laboratoriya')}
+              />
+            </div>
           )}
           {activeSection === 'laboratoriya' && (
             <LaboratoriesView
