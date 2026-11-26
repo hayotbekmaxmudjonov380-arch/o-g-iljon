@@ -236,7 +236,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
               <button
                 type="submit"
-                className="w-full p-3 rounded-[12px] bg-[#0173ed]/55 hover:bg-[#1482f7]/75 border border-sky-300/45 shadow-[0_8px_24px_rgba(1,115,237,0.28)] text-white text-[15px] font-medium cursor-pointer transition-all duration-300"
+                className="w-full p-3.5 rounded-full bg-gradient-to-br from-[#2E9BFF] to-[#0050CC] hover:brightness-110 shadow-[inset_0_1.5px_1px_rgba(255,255,255,0.75),0_12px_26px_-8px_rgba(0,80,204,0.65)] text-white text-[15px] font-semibold cursor-pointer transition-all duration-300 active:scale-[0.98]"
               >
                 Login
               </button>

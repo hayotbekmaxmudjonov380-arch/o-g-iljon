@@ -37,7 +37,7 @@ export default function IntroPortal({
 
   return (
     <div
-      className={`relative w-full h-screen overflow-hidden bg-[#060a14] transition-opacity duration-250 ${
+      className={`relative w-full h-screen overflow-hidden bg-[#050A1C] transition-opacity duration-250 ${
         isLeaving ? 'opacity-0' : 'opacity-100'
       }`}
     >
@@ -60,8 +60,8 @@ export default function IntroPortal({
         style={{
           background:
             theme === 'dark'
-              ? 'linear-gradient(180deg, rgba(6,10,20,0.98) 0%, rgba(6,10,20,0.82) 9%, rgba(6,10,20,0) 22%, rgba(6,10,20,0) 72%, rgba(6,10,20,0.88) 87%, rgba(6,10,20,0.98) 100%), radial-gradient(circle at center, rgba(14,165,233,0.06) 0%, rgba(6,10,20,0.58) 100%)'
-              : 'linear-gradient(180deg, rgba(6,10,20,0.98) 0%, rgba(15,23,42,0.72) 10%, rgba(15,23,42,0) 22%, rgba(15,23,42,0) 72%, rgba(15,23,42,0.82) 87%, rgba(6,10,20,0.98) 100%), radial-gradient(circle at center, rgba(56,189,248,0.06) 0%, rgba(6,10,20,0.48) 100%)',
+              ? 'linear-gradient(180deg, rgba(5,10,28,0.98) 0%, rgba(5,10,28,0.82) 9%, rgba(5,10,28,0) 22%, rgba(5,10,28,0) 72%, rgba(5,10,28,0.88) 87%, rgba(5,10,28,0.98) 100%), radial-gradient(circle at center, rgba(46,155,255,0.06) 0%, rgba(5,10,28,0.58) 100%)'
+              : 'linear-gradient(180deg, rgba(5,10,28,0.95) 0%, rgba(11,19,43,0.7) 10%, rgba(11,19,43,0) 22%, rgba(11,19,43,0) 72%, rgba(11,19,43,0.8) 87%, rgba(5,10,28,0.96) 100%), radial-gradient(circle at center, rgba(46,155,255,0.08) 0%, rgba(5,10,28,0.46) 100%)',
         }}
       />
 
@@ -69,11 +69,11 @@ export default function IntroPortal({
       <div className="relative z-10 pointer-events-none flex flex-col justify-between h-full px-5 py-5 md:px-10 md:py-7">
         {/* Minimal Top Header */}
         <header className="pointer-events-auto flex items-center justify-between gap-4 max-w-6xl w-full mx-auto">
-          <div className="flex items-center gap-3 whitespace-nowrap shrink-0 px-3 py-1.5 rounded-2xl glass-hud">
-            <div className="w-8 h-8 rounded-lg bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-600 dark:text-sky-400">
+          <div className="flex items-center gap-3 whitespace-nowrap shrink-0 px-3 py-1.5 rounded-full glass-hud">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2E9BFF] to-[#0050CC] shadow-[inset_0_1px_1px_rgba(255,255,255,0.8)] flex items-center justify-center text-white">
               <Atom className="w-4.5 h-4.5" />
             </div>
-            <span className="font-display text-lg font-bold tracking-tight text-slate-900 dark:text-white pr-1">
+            <span className="font-display text-lg font-bold tracking-tight text-[#0B132B] dark:text-[#F1F7FF] pr-1.5">
               FizLab
             </span>
           </div>
@@ -83,29 +83,29 @@ export default function IntroPortal({
             <button
               type="button"
               onClick={() => handleEnter('laboratoriya')}
-              className="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 dark:bg-sky-500 dark:hover:bg-sky-400 text-white dark:text-slate-950 font-semibold text-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-lg shadow-sky-500/20"
+              className="px-5 py-2.5 rounded-full bg-gradient-to-br from-[#2E9BFF] to-[#0050CC] hover:brightness-110 text-white font-semibold text-sm transition-all whitespace-nowrap shrink-0 cursor-pointer shadow-[inset_0_1.5px_1px_rgba(255,255,255,0.8),0_10px_24px_-8px_rgba(0,80,204,0.65)] active:scale-95"
             >
               Ishchi ekranga o‘tish
             </button>
           </div>
         </header>
 
-        {/* Bottom Minimal Floating Action & Refined Sketchfab Badge */}
+        {/* Bottom Minimal Floating Action & Refined Badge */}
         <div className="max-w-4xl w-full mx-auto flex flex-col items-center gap-3 pb-1">
-          <div className="text-center space-y-1.5 px-5 py-2.5 rounded-2xl glass-hud">
-            <h1 className="font-display text-xl sm:text-3xl font-bold text-slate-950 dark:text-white tracking-tight">
+          <div className="text-center space-y-1.5 px-6 py-3 rounded-[24px] glass-hud">
+            <h1 className="font-display text-xl sm:text-3xl font-bold text-[#0B132B] dark:text-[#F1F7FF] tracking-tight">
               Molekulyar fizika 3D laboratoriyasi
             </h1>
-            <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+            <p className="text-xs sm:text-sm text-[#0B132B]/75 dark:text-[#F1F7FF]/75">
               Sichqoncha yordamida 3D molekula modelini aylantirib va yaqinlashtirib kuzating
             </p>
           </div>
 
-          <div className="pointer-events-auto glass-hud rounded-2xl p-2 flex items-center justify-center">
+          <div className="pointer-events-auto glass-hud rounded-full p-1.5 flex items-center justify-center">
             <button
               type="button"
               onClick={() => handleEnter('laboratoriya')}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 dark:bg-sky-500 dark:hover:bg-sky-400 text-white dark:text-slate-950 font-semibold text-xs sm:text-sm transition-colors cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-[#2E9BFF] to-[#0050CC] hover:brightness-110 text-white font-semibold text-xs sm:text-sm transition-all cursor-pointer whitespace-nowrap shadow-[inset_0_1.5px_1px_rgba(255,255,255,0.8),0_10px_24px_-8px_rgba(0,80,204,0.65)] active:scale-95"
             >
               <FlaskConical className="w-4 h-4" />
               <span>Laboratoriyani boshlash</span>

@@ -134,7 +134,7 @@ export default function LibraryView({
   if (selectedBook && !selectedBook.pdfUrl) {
     return (
       <div className="fizlab-quiz-scope w-full max-w-[880px] mx-auto my-auto py-2 space-y-4">
-        <div className="fizlab-neo-card bg-white/95 dark:bg-[#0f192e]/95 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6">
+        <div className="fizlab-neo-card">
           <div className="flex items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-3">
               <span className="fizlab-neo-icon font-display font-bold text-sm">
@@ -214,7 +214,7 @@ export default function LibraryView({
       </div>
 
       {/* Class Category Tabs + Search Bar */}
-      <div className="fizlab-neo-card bg-white/95 dark:bg-[#0f192e]/95 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-5 space-y-3">
+      <div className="fizlab-neo-card space-y-3">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Interactive Class Filter Tabs */}
           <div
@@ -281,7 +281,7 @@ export default function LibraryView({
 
       {/* Categorized Sections Organized by Class */}
       {classGroups.length === 0 ? (
-        <div className="fizlab-neo-card bg-white/95 dark:bg-[#0f192e]/95 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 text-center space-y-2.5">
+        <div className="fizlab-neo-card !p-8 text-center space-y-2.5">
           <BookOpen
             size={28}
             className="mx-auto text-sky-600 dark:text-sky-400"
@@ -310,7 +310,7 @@ export default function LibraryView({
             <section
               key={group.grade}
               aria-labelledby={`library-class-heading-${group.grade}`}
-              className="fizlab-neo-card bg-white/95 dark:bg-[#0f192e]/95 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-5 space-y-3"
+              className="fizlab-neo-card space-y-3"
             >
               {/* Class Category Header */}
               <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-900/10 dark:border-white/10">

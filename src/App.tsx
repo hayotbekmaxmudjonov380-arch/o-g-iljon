@@ -135,28 +135,28 @@ export default function App() {
 
   return (
     <AppErrorBoundary>
-      <div className="relative h-screen w-full overflow-hidden bg-[#eef4fb] dark:bg-[#060a14] text-slate-900 dark:text-slate-100 transition-colors duration-200">
-      {/* Ambient Glassmorphism Backdrop Light Orbs */}
+      <div className="relative h-screen w-full overflow-hidden bg-[#DCEBF5] dark:bg-[#050A1C] text-[#0B132B] dark:text-[#F1F7FF] transition-colors duration-300">
+      {/* Nimbus Tidepool Caustic Backdrop Light Orbs */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden"
       >
         <div
-          className="absolute -top-32 -left-24 w-[520px] h-[520px] rounded-full opacity-55 dark:opacity-35"
+          className="absolute -top-40 -left-28 w-[640px] h-[640px] rounded-full opacity-75 dark:opacity-55"
           style={{
             background:
               theme === 'dark'
-                ? 'radial-gradient(circle, rgba(14,165,233,0.32) 0%, rgba(14,165,233,0) 70%)'
-                : 'radial-gradient(circle, rgba(14,165,233,0.24) 0%, rgba(14,165,233,0) 70%)',
+                ? 'radial-gradient(circle, rgba(46,155,255,0.28) 0%, rgba(22,36,74,0.12) 45%, rgba(5,10,28,0) 72%)'
+                : 'radial-gradient(circle, rgba(46,155,255,0.28) 0%, rgba(185,220,248,0.16) 45%, rgba(220,235,245,0) 72%)',
           }}
         />
         <div
-          className="absolute -bottom-40 right-10 w-[620px] h-[620px] rounded-full opacity-45 dark:opacity-30"
+          className="absolute -bottom-44 -right-12 w-[680px] h-[680px] rounded-full opacity-70 dark:opacity-50"
           style={{
             background:
               theme === 'dark'
-                ? 'radial-gradient(circle, rgba(245,158,11,0.22) 0%, rgba(245,158,11,0) 70%)'
-                : 'radial-gradient(circle, rgba(245,158,11,0.18) 0%, rgba(245,158,11,0) 70%)',
+                ? 'radial-gradient(circle, rgba(0,162,255,0.22) 0%, rgba(0,80,204,0.12) 45%, rgba(5,10,28,0) 72%)'
+                : 'radial-gradient(circle, rgba(0,162,255,0.22) 0%, rgba(238,247,255,0.2) 45%, rgba(220,235,245,0) 72%)',
           }}
         />
       </div>

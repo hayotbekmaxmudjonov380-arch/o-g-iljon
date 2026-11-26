@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronUp,
   ClipboardList,
+  FlaskConical,
   Gauge,
   Library,
   LogOut,
@@ -33,8 +34,11 @@ import {
 } from '../three/MolecularLabEngine';
 import { FizLabTheme, LabExperimentId, LabTelemetry } from '../types/fizlab';
 import AiSectionView from './AiSectionView';
+import LaboratorySectionsView from './LaboratorySectionsView';
 import LibraryView from './LibraryView';
+import type { LaboratorySubSectionId } from '../data/laboratorySectionsData';
 import type { LibraryGrade } from '../data/libraryBooksData';
+import SimulationChaptersView from './SimulationChaptersView';
 import TestsGradesView, { type TestGrade } from './TestsGradesView';
 import ThemeToggle from './ThemeToggle';
 import TheoryGradesView, { type TheoryGrade } from './TheoryGradesView';
@@ -44,6 +48,7 @@ import videoImg from '../assets/images/video_physics_lecture_1794766163559.jpg';
 import testsImg from '../assets/images/physics_quiz_test_1794766165407.jpg';
 import libraryImg from '../assets/images/physics_digital_library_1794766164428.jpg';
 import simulationImg from '../assets/images/physics_3d_simulation_1794845647265.jpg';
+import laboratoryImg from '../assets/images/physics_laboratory_work_1795545684004.jpg';
 import aiImg from '../assets/images/ai_physics_assistant_1794766165894.jpg';
 
 gsap.registerPlugin(useGSAP);
@@ -55,6 +60,7 @@ type LabSectionTab =
   | 'tests'
   | 'library'
   | 'simulation'
+  | 'laboratory'
   | 'ai';
 type LabViewMode = 'sections' | 'simulator';
 
@@ -112,6 +118,13 @@ const LAB_MODULE_SECTIONS: {
     imageAlt: 'Simulyatsiya — fizika bo‘limlarining 3D grafik animatsiyalari',
   },
   {
+    id: 'laboratory',
+    title: 'Laboratoriya',
+    icon: FlaskConical,
+    image: laboratoryImg,
+    imageAlt: 'Laboratoriya — fizika tajribalari va o‘lchov asboblari',
+  },
+  {
     id: 'ai',
     title: 'AI',
     icon: Sparkles,
@@ -143,11 +156,11 @@ const LAB_ICONS: Record<LabExperimentId, typeof Gauge> = {
 
 const LAB_GLASS_DEFAULT = (theme: FizLabTheme): GlassSettings =>
   normalizeGlassSettings({
-    blur: 18,
-    opacity: 0.56,
-    saturation: 1.3,
-    edge: 0.72,
-    tint: theme === 'dark' ? '#0f1f3a' : '#ffffff',
+    blur: 16,
+    opacity: theme === 'dark' ? 0.56 : 0.44,
+    saturation: 1.25,
+    edge: 0.78,
+    tint: theme === 'dark' ? '#16244A' : '#EEF7FF',
   });
 
 function LiveSpeedHistogram({ bins }: { bins: number[] }) {
@@ -201,6 +214,10 @@ export default function LaboratoriesView({
     useState<TestGrade | null>(null);
   const [selectedLibraryGrade, setSelectedLibraryGrade] =
     useState<LibraryGrade | null>(null);
+  const [selectedSimulationChapterId, setSelectedSimulationChapterId] =
+    useState<string | null>(null);
+  const [selectedLabSubSectionId, setSelectedLabSubSectionId] =
+    useState<LaboratorySubSectionId | null>(null);
 
   const isAiOpen = viewMode === 'sections' && activeModuleTab === 'ai';
 
@@ -362,9 +379,9 @@ export default function LaboratoriesView({
     <div
       ref={rootRef}
       data-theme={theme}
-      className={`gw-root fizlab-gw-lab relative w-full h-full overflow-hidden rounded-3xl border border-slate-900/12 dark:border-white/12 ${
+      className={`gw-root fizlab-gw-lab relative w-full h-full overflow-hidden rounded-[28px] border border-white/45 dark:border-white/14 ${
         viewMode === 'simulator'
-          ? 'bg-[#e9f1fa] dark:bg-[#060a14]'
+          ? 'bg-[#DCEBF5] dark:bg-[#050A1C]'
           : 'glass-panel-subtle'
       }`}
       style={
@@ -372,7 +389,7 @@ export default function LaboratoriesView({
           '--gw-blur': `${material.blur}px`,
           '--gw-opacity': material.opacity,
           '--gw-saturation': material.saturation,
-          '--gw-tint': `color-mix(in srgb, var(--color-background, Canvas) 78%, ${material.tint})`,
+          '--gw-tint': `color-mix(in srgb, var(--color-background, Canvas) 72%, ${material.tint})`,
           '--gw-edge': material.edge,
         } as CSSProperties
       }
@@ -390,7 +407,7 @@ export default function LaboratoriesView({
       )}
 
       {viewMode === 'simulator' && contextLost && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#e9f1fa]/90 dark:bg-[#060a14]/90 p-6 text-center">
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#DCEBF5]/90 dark:bg-[#050A1C]/90 p-6 text-center">
           <div className="gw-glass rounded-2xl p-6 max-w-md space-y-2">
             <div className="font-display text-lg font-bold text-[var(--gw-ink)]">
               WebGL konteksti vaqtincha to‘xtatildi
@@ -412,7 +429,7 @@ export default function LaboratoriesView({
         {/* Top Section */}
         <div
           className={`flex flex-col gap-3 ${
-            viewMode === 'sections' ? 'flex-1' : ''
+            viewMode === 'sections' ? 'flex-1 min-h-0' : ''
           }`}
         >
           {/* Clean Soft-Shadow Topbar */}
@@ -489,7 +506,7 @@ export default function LaboratoriesView({
                   onClick={onLogout}
                   title="Tizimdan chiqish"
                   aria-label="Tizimdan chiqish"
-                  className="w-9 h-9 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 flex items-center justify-center text-rose-700 dark:text-rose-300 transition-colors cursor-pointer"
+                  className="fizlab-logout-orb"
                 >
                   <LogOut size={15} aria-hidden="true" />
                 </button>
@@ -526,32 +543,24 @@ export default function LaboratoriesView({
                 }}
               />
             ) : activeModuleTab === 'simulation' ? (
-              <div className="w-full max-w-[880px] mx-auto my-auto py-2 space-y-4">
-                <div className="fizlab-neo-card gw-reveal">
-                  <div className="flex items-center justify-between gap-3 mb-4">
-                    <div className="flex items-center gap-3">
-                      <span className="fizlab-neo-icon">
-                        <Box size={16} strokeWidth={2} aria-hidden="true" />
-                      </span>
-                      <h2 className="fizlab-neo-heading">Simulyatsiya</h2>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setActiveModuleTab('all')}
-                      className="fizlab-neo-btn !w-auto !m-0 !px-4 !py-2 text-xs inline-flex items-center gap-1.5 whitespace-nowrap shrink-0"
-                    >
-                      <ArrowLeft size={14} aria-hidden="true" />
-                      <span>Orqaga</span>
-                    </button>
-                  </div>
-
-                  <div
-                    className="fizlab-neo-well min-h-[380px]"
-                    aria-label="Simulyatsiya bo‘limi"
-                  />
-                </div>
-              </div>
+              <SimulationChaptersView
+                selectedChapterId={selectedSimulationChapterId}
+                onSelectChapterId={setSelectedSimulationChapterId}
+                onBackToSections={() => {
+                  setSelectedSimulationChapterId(null);
+                  setActiveModuleTab('all');
+                }}
+                theme={theme}
+              />
+            ) : activeModuleTab === 'laboratory' ? (
+              <LaboratorySectionsView
+                selectedSubSectionId={selectedLabSubSectionId}
+                onSelectSubSectionId={setSelectedLabSubSectionId}
+                onBackToSections={() => {
+                  setSelectedLabSubSectionId(null);
+                  setActiveModuleTab('all');
+                }}
+              />
             ) : (
             /* Balanced 3x2 section cards */
             <div
@@ -579,6 +588,12 @@ export default function LaboratoriesView({
                         }
                         if (sec.id === 'library') {
                           setSelectedLibraryGrade(null);
+                        }
+                        if (sec.id === 'simulation') {
+                          setSelectedSimulationChapterId(null);
+                        }
+                        if (sec.id === 'laboratory') {
+                          setSelectedLabSubSectionId(null);
                         }
                         setActiveModuleTab(sec.id);
                       }
@@ -863,7 +878,7 @@ export default function LaboratoriesView({
                     type="button"
                     onClick={handleReset}
                     title="Tajribani qayta tiklash"
-                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-900/[0.06] hover:bg-slate-900/[0.12] dark:bg-white/[0.08] dark:hover:bg-white/[0.14] border border-[var(--gw-line)] text-[var(--gw-ink)] text-xs font-medium transition-colors cursor-pointer whitespace-nowrap"
+                    className="fizlab-quiz-secondary-btn !py-2.5 !px-3.5 !text-xs"
                   >
                     <RotateCcw size={14} aria-hidden="true" />
                     <span>Tiklash</span>
@@ -965,104 +980,270 @@ export default function LaboratoriesView({
 
 const labWorkspaceOverrides = `
 .gw-root.fizlab-gw-lab {
+  --gw-ink: #0B132B;
+  --gw-muted: rgba(11, 19, 43, 0.64);
+  --gw-line: rgba(11, 19, 43, 0.1);
+  --gw-accent: #0077E6;
+  --gw-brand: linear-gradient(160deg, #2E9BFF 0%, #0050CC 100%);
+  --gw-brand-ink: #FFFFFF;
+  --gw-dock-shadow: rgba(0, 80, 204, 0.42);
+  --gw-surface: rgba(255, 255, 255, 0.36);
   min-height: 0;
   height: 100%;
   padding: 0;
   background: transparent;
   font-family: var(--font-sans);
 }
+.gw-root.fizlab-gw-lab[data-theme="dark"] {
+  --gw-ink: #F1F7FF;
+  --gw-muted: rgba(241, 247, 255, 0.68);
+  --gw-line: rgba(241, 247, 255, 0.12);
+  --gw-accent: #2E9BFF;
+  --gw-surface: rgba(14, 24, 52, 0.56);
+}
 .gw-root.fizlab-gw-lab .fizlab-topbar {
-  height: 52px;
+  height: 54px;
   margin-bottom: 0;
-  border-radius: 18px;
-  padding: 0 14px;
+  border-radius: 999px;
+  padding: 0 16px;
+}
+.gw-root.fizlab-gw-lab .gw-button {
+  border-radius: 999px;
+  background: linear-gradient(160deg, #2E9BFF 0%, #0066E6 65%, #0050CC 100%);
+  color: #FFFFFF;
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.78),
+    inset 0 -2px 6px rgba(0, 32, 100, 0.28),
+    0 10px 22px -10px rgba(0, 80, 204, 0.56);
+  transition: transform 0.2s cubic-bezier(0.3, 1.5, 0.5, 1), filter 0.2s ease;
+}
+.gw-root.fizlab-gw-lab .gw-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
 }
 .gw-root.fizlab-gw-lab .fizlab-lab-dock {
-  border-radius: 22px;
+  border-radius: 999px;
   padding: 4px;
-  background: color-mix(
-    in srgb,
-    var(--gw-surface) calc(var(--gw-opacity) * 100%),
-    transparent
-  );
-  backdrop-filter: blur(var(--gw-blur)) saturate(var(--gw-saturation));
-  -webkit-backdrop-filter: blur(var(--gw-blur)) saturate(var(--gw-saturation));
+  background: rgba(255, 255, 255, 0.36);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.85),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.48),
+    0 14px 34px -18px rgba(0, 40, 90, 0.45);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+}
+.gw-root.fizlab-gw-lab[data-theme="dark"] .fizlab-lab-dock {
+  background: rgba(12, 22, 52, 0.66);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.32),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 16px 36px -16px rgba(0, 0, 0, 0.75);
 }
 .gw-root.fizlab-gw-lab .fizlab-lab-dock button {
-  padding: 7px 13px;
+  padding: 7px 14px;
   font-size: 12px;
   font-weight: 600;
-  border-radius: 18px;
+  border-radius: 999px;
 }
 .gw-root.fizlab-gw-lab .fizlab-lab-dock button[aria-current="page"] {
-  background: var(--gw-brand);
-  color: var(--gw-brand-ink);
-  box-shadow: 0 4px 12px var(--gw-dock-shadow);
+  background: linear-gradient(160deg, #2E9BFF 0%, #0050CC 100%);
+  color: #FFFFFF;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.72),
+    0 6px 16px -6px rgba(0, 80, 204, 0.56);
+}
+.gw-root.fizlab-gw-lab .gw-segment {
+  border-radius: 999px;
+}
+.gw-root.fizlab-gw-lab .gw-segment button {
+  border-radius: 999px;
+}
+.gw-root.fizlab-gw-lab .gw-segment button[aria-pressed="true"] {
+  background: linear-gradient(160deg, #2E9BFF 0%, #0050CC 100%);
+  color: #FFFFFF;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.72);
 }
 .gw-root.fizlab-gw-lab .fizlab-hud-card {
-  padding: 11px 16px;
-  border-radius: 18px;
+  padding: 12px 18px;
+  border-radius: 22px;
 }
 .gw-root.fizlab-gw-lab .fizlab-empty-card {
   padding: 18px 20px;
-  border-radius: 20px;
+  border-radius: 24px;
 }
 
-/* Neumorphic Sky-White Card System based on user-provided Sign In design */
+/* ===================== Nimbus UI · Liquid Glass ("Tidepool") Design System ===================== */
 .fizlab-neo-topbar {
+  position: relative;
   height: 58px;
   margin-bottom: 0;
   padding: 0 18px;
   border-radius: 28px;
-  background: linear-gradient(0deg, rgb(255, 255, 255) 0%, rgb(244, 247, 251) 100%);
-  border: 4px solid rgb(255, 255, 255);
-  box-shadow: rgba(133, 189, 215, 0.78) 0px 22px 26px -18px;
+  border: none;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.48) 0%, rgba(232, 245, 255, 0.28) 100%);
+  -webkit-backdrop-filter: blur(16px) saturate(1.25) brightness(1.06);
+  backdrop-filter: blur(16px) saturate(1.25) brightness(1.06);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.52),
+    inset 0 -2px 8px rgba(0, 162, 255, 0.08),
+    0 20px 44px -22px rgba(0, 40, 90, 0.48),
+    0 2px 6px rgba(0, 40, 90, 0.07);
 }
 [data-theme="dark"] .fizlab-neo-topbar {
-  background: linear-gradient(0deg, rgba(15, 25, 46, 0.96) 0%, rgba(22, 36, 64, 0.92) 100%);
-  border-color: rgba(133, 189, 215, 0.22);
-  box-shadow: rgba(2, 6, 23, 0.65) 0px 22px 26px -18px;
+  background: linear-gradient(155deg, rgba(22, 36, 74, 0.58) 0%, rgba(8, 16, 40, 0.48) 100%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.34),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 -2px 10px rgba(0, 140, 255, 0.1),
+    0 22px 48px -22px rgba(0, 0, 0, 0.78);
 }
+
 .fizlab-neo-brand-icon {
   display: grid;
   place-items: center;
   width: 34px;
   height: 34px;
-  border-radius: 50%;
-  background: linear-gradient(45deg, rgb(16, 137, 211) 0%, rgb(18, 177, 209) 100%);
-  border: 3px solid rgb(255, 255, 255);
-  color: #ffffff;
-  box-shadow: rgba(133, 189, 215, 0.878) 0px 10px 10px -6px;
+  border-radius: 999px;
+  background: linear-gradient(160deg, #2E9BFF 0%, #0050CC 100%);
+  color: #FFFFFF;
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.8),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+    0 8px 18px -6px rgba(0, 80, 204, 0.58);
 }
 [data-theme="dark"] .fizlab-neo-brand-icon {
-  border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: rgba(2, 6, 23, 0.5) 0px 10px 10px -6px;
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.58),
+    inset 0 0 0 1px rgba(125, 211, 252, 0.32),
+    0 8px 20px -6px rgba(0, 120, 255, 0.55);
 }
+
 .fizlab-neo-brand-title {
-  font-weight: 900;
+  font-weight: 800;
   font-size: 16px;
-  color: rgb(16, 137, 211);
+  color: #0B132B;
   letter-spacing: -0.02em;
 }
 [data-theme="dark"] .fizlab-neo-brand-title {
-  color: #38bdf8;
+  color: #F1F7FF;
 }
 
+.gw-root .fizlab-logout-orb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.56);
+  color: #B42318;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(229, 72, 77, 0.26),
+    0 8px 18px -10px rgba(0, 40, 90, 0.35);
+  transition: transform 0.2s cubic-bezier(0.3, 1.5, 0.5, 1), background-color 0.2s ease;
+}
+.gw-root .fizlab-logout-orb:hover {
+  background: rgba(254, 226, 226, 0.85);
+  transform: scale(1.06);
+}
+.gw-root[data-theme="dark"] .fizlab-logout-orb {
+  background: rgba(229, 72, 77, 0.14);
+  color: #FDA4AF;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.26),
+    inset 0 0 0 1px rgba(253, 164, 175, 0.28),
+    0 8px 18px -8px rgba(0, 0, 0, 0.58);
+}
+.gw-root[data-theme="dark"] .fizlab-logout-orb:hover {
+  background: rgba(229, 72, 77, 0.24);
+}
+
+/* Liquid Glass Cards (.lc-panel + .lc-glass) */
 .gw-root .fizlab-neo-card {
-  background: linear-gradient(0deg, rgb(255, 255, 255) 0%, rgb(244, 247, 251) 100%);
-  border-radius: 30px;
-  padding: 16px 22px;
-  border: 4px solid rgb(255, 255, 255);
-  box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 22px 24px -16px;
-  transition: transform 0.22s ease-in-out, box-shadow 0.22s ease-in-out;
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  padding: 18px 22px;
+  border: none;
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.44) 0%,
+    rgba(232, 245, 255, 0.26) 100%
+  );
+  -webkit-backdrop-filter: blur(16px) saturate(1.25) brightness(1.06);
+  backdrop-filter: blur(16px) saturate(1.25) brightness(1.06);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    inset 0 -3px 12px rgba(0, 162, 255, 0.08),
+    0 22px 50px -24px rgba(0, 40, 90, 0.48),
+    0 2px 6px rgba(0, 40, 90, 0.08);
+  transition:
+    transform 0.26s cubic-bezier(0.25, 1.25, 0.35, 1),
+    box-shadow 0.26s ease,
+    background 0.26s ease;
+}
+.gw-root .fizlab-neo-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0.42) 0%,
+    rgba(255, 255, 255, 0.06) 36%,
+    rgba(0, 162, 255, 0.04) 72%,
+    rgba(255, 255, 255, 0.2) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.gw-root .fizlab-neo-card > * {
+  position: relative;
+  z-index: 1;
 }
 .gw-root[data-theme="dark"] .fizlab-neo-card {
-  background: linear-gradient(0deg, rgba(13, 22, 41, 0.96) 0%, rgba(20, 33, 58, 0.92) 100%);
-  border-color: rgba(133, 189, 215, 0.2);
-  box-shadow: rgba(2, 6, 23, 0.72) 0px 22px 24px -16px;
+  background: linear-gradient(
+    155deg,
+    rgba(22, 36, 74, 0.56) 0%,
+    rgba(7, 14, 36, 0.48) 100%
+  );
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.32),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.13),
+    inset 0 -3px 14px rgba(0, 140, 255, 0.12),
+    0 22px 52px -22px rgba(0, 0, 0, 0.78),
+    0 2px 8px rgba(0, 10, 34, 0.45);
+}
+.gw-root[data-theme="dark"] .fizlab-neo-card::before {
+  background: linear-gradient(
+    125deg,
+    rgba(125, 211, 252, 0.12) 0%,
+    rgba(255, 255, 255, 0.02) 38%,
+    rgba(0, 110, 255, 0.04) 72%,
+    rgba(186, 230, 253, 0.08) 100%
+  );
 }
 .gw-root .fizlab-neo-card.is-interactive:hover {
   transform: translateY(-2px) scale(1.012);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.96),
+    inset 0 0 0 1px rgba(0, 162, 255, 0.38),
+    inset 0 -3px 14px rgba(0, 162, 255, 0.14),
+    0 26px 56px -22px rgba(0, 50, 120, 0.54),
+    0 4px 10px rgba(0, 40, 90, 0.1);
+}
+.gw-root[data-theme="dark"] .fizlab-neo-card.is-interactive:hover {
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.4),
+    inset 0 0 0 1px rgba(46, 155, 255, 0.42),
+    inset 0 -3px 16px rgba(0, 140, 255, 0.2),
+    0 26px 58px -20px rgba(0, 0, 0, 0.85),
+    0 0 24px -8px rgba(46, 155, 255, 0.3);
 }
 .gw-root .fizlab-neo-card.is-interactive:active {
   transform: scale(0.985);
@@ -1070,82 +1251,123 @@ const labWorkspaceOverrides = `
 
 .fizlab-neo-heading {
   font-family: var(--font-display);
-  font-weight: 900;
+  font-weight: 700;
   font-size: clamp(16px, 1.4vw, 18px);
-  color: rgb(16, 137, 211);
-  letter-spacing: -0.02em;
+  color: #0B132B;
+  letter-spacing: -0.025em;
 }
 [data-theme="dark"] .fizlab-neo-heading {
-  color: #38bdf8;
+  color: #F1F7FF;
 }
 
+/* Liquid Glass Icon Orbs */
 .fizlab-neo-icon {
-  background: linear-gradient(45deg, rgb(16, 137, 211) 0%, rgb(18, 177, 209) 100%);
-  border: 4px solid white;
-  border-radius: 50%;
+  position: relative;
+  background: linear-gradient(160deg, #2E9BFF 0%, #0050CC 100%);
+  border: none;
+  border-radius: 999px;
   width: 38px;
   height: 38px;
   display: grid;
   place-content: center;
-  color: #ffffff;
+  color: #FFFFFF;
   flex: none;
-  box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 10px 10px -7px;
-  transition: transform 0.2s ease-in-out;
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.84),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.46),
+    inset 0 -3px 6px rgba(0, 25, 90, 0.28),
+    0 10px 20px -8px rgba(0, 80, 204, 0.56);
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1), box-shadow 0.25s ease;
 }
 .fizlab-neo-icon.is-dark-badge {
-  background: linear-gradient(45deg, rgb(0, 0, 0) 0%, rgb(112, 112, 112) 100%);
+  background: linear-gradient(160deg, #16244A 0%, #050A1C 100%);
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.52),
+    inset 0 0 0 1px rgba(125, 211, 252, 0.3),
+    0 10px 20px -8px rgba(5, 10, 28, 0.65);
 }
 [data-theme="dark"] .fizlab-neo-icon {
-  border-color: rgba(255, 255, 255, 0.24);
-  box-shadow: rgba(2, 6, 23, 0.6) 0px 10px 10px -7px;
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.58),
+    inset 0 0 0 1px rgba(125, 211, 252, 0.34),
+    0 10px 22px -8px rgba(0, 120, 255, 0.55);
 }
 .fizlab-neo-card.is-interactive:hover .fizlab-neo-icon {
-  transform: scale(1.1);
+  transform: scale(1.09);
 }
 
+/* Recessed Liquid Glass Well (.lc-box) */
 .fizlab-neo-well {
   width: 100%;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.26);
   border: none;
-  padding: 10px 16px;
-  border-radius: 18px;
-  box-shadow: #cff0ff 0px 10px 10px -5px;
-  border-inline: 2px solid transparent;
-  transition: border-color 0.2s ease;
+  padding: 12px 16px;
+  border-radius: 16px;
+  box-shadow:
+    inset 0 0 0 1px rgba(11, 19, 43, 0.09),
+    inset 0 1px 2px rgba(0, 40, 90, 0.06);
+  transition: box-shadow 0.24s ease, background-color 0.24s ease;
 }
 [data-theme="dark"] .fizlab-neo-well {
-  background: rgba(8, 14, 28, 0.72);
-  box-shadow: rgba(14, 165, 233, 0.16) 0px 10px 14px -5px;
-  border: 1px solid rgba(133, 189, 215, 0.14);
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow:
+    inset 0 0 0 1px rgba(241, 247, 255, 0.11),
+    inset 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 .fizlab-neo-card.is-interactive:hover .fizlab-neo-well {
-  border-inline-color: #12b1d1;
+  box-shadow:
+    inset 0 0 0 1.5px rgba(0, 162, 255, 0.48),
+    inset 0 1px 2px rgba(0, 40, 90, 0.06);
 }
 
+/* Primary Nimbus Liquid Pill CTA Button (.lc-pay sky fill) */
 .gw-root .fizlab-neo-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  background: linear-gradient(45deg, rgb(16, 137, 211) 0%, rgb(18, 177, 209) 100%);
-  color: #ffffff;
-  border-radius: 20px;
-  box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 20px 10px -15px;
+  gap: 6px;
+  font-weight: 620;
+  letter-spacing: -0.01em;
+  background: linear-gradient(160deg, #2E9BFF 0%, #0066E6 60%, #0050CC 100%);
+  color: #FFFFFF;
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.82),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.34),
+    inset 0 -2px 6px rgba(0, 28, 95, 0.32),
+    0 10px 22px -10px rgba(0, 80, 204, 0.62);
   border: none;
   cursor: pointer;
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  transition:
+    transform 0.22s cubic-bezier(0.3, 1.6, 0.5, 1),
+    box-shadow 0.22s ease,
+    filter 0.22s ease;
 }
 .gw-root .fizlab-neo-btn:hover {
-  transform: scale(1.03);
-  box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 23px 10px -20px;
+  transform: translateY(-1px) scale(1.03);
+  filter: brightness(1.06);
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42),
+    inset 0 -2px 6px rgba(0, 28, 95, 0.32),
+    0 14px 26px -10px rgba(0, 90, 220, 0.68);
 }
 .gw-root .fizlab-neo-btn:active {
-  transform: scale(0.95);
-  box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 15px 10px -10px;
+  transform: scale(0.96);
+}
+.gw-root .fizlab-neo-btn:focus-visible {
+  outline: 2px solid #00A2FF;
+  outline-offset: 3px;
 }
 .gw-root[data-theme="dark"] .fizlab-neo-btn {
-  box-shadow: rgba(14, 165, 233, 0.35) 0px 18px 16px -12px;
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.62),
+    inset 0 0 0 1px rgba(125, 211, 252, 0.35),
+    inset 0 -2px 6px rgba(0, 24, 90, 0.45),
+    0 10px 24px -8px rgba(0, 120, 255, 0.56);
 }
+
+/* Liquid Glass Topic / Chapter Rows (.lc-row / .lc-box) */
 .gw-root .fizlab-neo-topic-row {
   width: 100%;
   display: flex;
@@ -1153,31 +1375,41 @@ const labWorkspaceOverrides = `
   justify-content: space-between;
   gap: 12px;
   text-align: left;
-  padding: 10px 14px;
-  border-radius: 13px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  background: rgba(244, 248, 252, 0.9);
-  color: #0f172a;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: none;
+  background: rgba(255, 255, 255, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 0 0 1px rgba(11, 19, 43, 0.08);
+  color: #0B132B;
   font-size: 13.5px;
-  font-weight: 500;
+  font-weight: 540;
   line-height: 1.45;
   letter-spacing: 0;
   cursor: pointer;
-  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
 .gw-root .fizlab-neo-topic-row:hover {
-  background: #e6f4fd;
-  border-color: rgba(16, 137, 211, 0.35);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    inset 0 0 0 1.5px rgba(0, 162, 255, 0.46),
+    0 6px 16px -10px rgba(0, 70, 140, 0.32);
   transform: translateX(2px);
 }
 .gw-root[data-theme="dark"] .fizlab-neo-topic-row {
-  background: rgba(15, 25, 46, 0.85);
-  border-color: rgba(133, 189, 215, 0.16);
-  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 0 0 1px rgba(241, 247, 255, 0.11);
+  color: #F1F7FF;
 }
 .gw-root[data-theme="dark"] .fizlab-neo-topic-row:hover {
-  background: rgba(24, 41, 74, 0.95);
-  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(46, 155, 255, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 0 0 1.5px rgba(46, 155, 255, 0.5);
 }
 
 .gw-root .fizlab-quiz-scope {
@@ -1190,49 +1422,62 @@ const labWorkspaceOverrides = `
   justify-content: center;
   width: 36px;
   height: 36px;
-  border-radius: 10px;
-  border: 1px solid rgba(15, 23, 42, 0.14);
-  background: #f8fafc;
-  color: #334155;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255, 255, 255, 0.36);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.85),
+    inset 0 0 0 1px rgba(11, 19, 43, 0.1);
+  color: #0B132B;
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease, transform 0.18s ease;
 }
 .gw-root .fizlab-quiz-num-btn:hover {
-  border-color: rgba(2, 132, 199, 0.55);
-  background: #f0f9ff;
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.92),
+    inset 0 0 0 1.5px #00A2FF;
 }
 .gw-root .fizlab-quiz-num-btn[data-answered="true"] {
-  background: #e0f2fe;
-  border-color: #38bdf8;
-  color: #0369a1;
+  background: rgba(46, 155, 255, 0.2);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.8),
+    inset 0 0 0 1px rgba(0, 128, 255, 0.45);
+  color: #0050CC;
 }
 .gw-root .fizlab-quiz-num-btn[data-active="true"] {
-  background: #0284c7;
-  border-color: #0284c7;
-  color: #ffffff;
+  background: linear-gradient(160deg, #2E9BFF 0%, #0050CC 100%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.72),
+    0 6px 14px -5px rgba(0, 80, 204, 0.56);
+  color: #FFFFFF;
 }
 .gw-root[data-theme="dark"] .fizlab-quiz-num-btn {
-  background: rgba(15, 23, 42, 0.75);
-  border-color: rgba(148, 163, 184, 0.24);
-  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.18),
+    inset 0 0 0 1px rgba(241, 247, 255, 0.14);
+  color: #F1F7FF;
 }
 .gw-root[data-theme="dark"] .fizlab-quiz-num-btn:hover {
-  border-color: rgba(56, 189, 248, 0.6);
-  background: rgba(30, 41, 59, 0.9);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 1.5px #2E9BFF;
 }
 .gw-root[data-theme="dark"] .fizlab-quiz-num-btn[data-answered="true"] {
-  background: rgba(14, 165, 233, 0.16);
-  border-color: rgba(56, 189, 248, 0.45);
-  color: #bae6fd;
+  background: rgba(46, 155, 255, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(46, 155, 255, 0.5);
+  color: #BAE6FD;
 }
 .gw-root[data-theme="dark"] .fizlab-quiz-num-btn[data-active="true"] {
-  background: #38bdf8;
-  border-color: #38bdf8;
-  color: #04111f;
+  background: linear-gradient(160deg, #2E9BFF 0%, #0050CC 100%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.58),
+    0 6px 16px -5px rgba(0, 120, 255, 0.55);
+  color: #FFFFFF;
 }
 
 .gw-root .fizlab-quiz-option {
@@ -1242,72 +1487,98 @@ const labWorkspaceOverrides = `
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  border-radius: 13px;
-  border: 1px solid rgba(15, 23, 42, 0.14);
-  background: #ffffff;
-  color: #0f172a;
+  border-radius: 16px;
+  border: none;
+  background: rgba(255, 255, 255, 0.44);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.85),
+    inset 0 0 0 1px rgba(11, 19, 43, 0.1);
+  color: #0B132B;
   text-align: left;
   letter-spacing: 0;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background 0.18s ease, box-shadow 0.18s ease;
 }
 .gw-root .fizlab-quiz-option:hover {
-  background: #f0f9ff;
-  border-color: rgba(2, 132, 199, 0.45);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.92),
+    inset 0 0 0 1.5px rgba(0, 162, 255, 0.52);
 }
 .gw-root .fizlab-quiz-option[aria-pressed="true"] {
-  background: #e0f2fe;
-  border-color: #0284c7;
-  box-shadow: inset 0 0 0 1px #0284c7;
+  background: rgba(46, 155, 255, 0.18);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.85),
+    inset 0 0 0 1.5px #0077E6;
 }
 .gw-root[data-theme="dark"] .fizlab-quiz-option {
-  background: rgba(10, 18, 36, 0.78);
-  border-color: rgba(148, 163, 184, 0.2);
-  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.16),
+    inset 0 0 0 1px rgba(241, 247, 255, 0.13);
+  color: #F1F7FF;
 }
 .gw-root[data-theme="dark"] .fizlab-quiz-option:hover {
-  background: rgba(20, 34, 64, 0.9);
-  border-color: rgba(56, 189, 248, 0.48);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1.5px rgba(46, 155, 255, 0.56);
 }
 .gw-root[data-theme="dark"] .fizlab-quiz-option[aria-pressed="true"] {
-  background: rgba(14, 165, 233, 0.16);
-  border-color: #38bdf8;
-  box-shadow: inset 0 0 0 1px #38bdf8;
-  color: #ffffff;
+  background: rgba(46, 155, 255, 0.22);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.34),
+    inset 0 0 0 1.5px #2E9BFF;
+  color: #FFFFFF;
 }
 
+/* Secondary Frosted Liquid Pill Buttons (.lc-pay resting state) */
 .gw-root .fizlab-quiz-secondary-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 9px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(15, 23, 42, 0.16);
-  background: #ffffff;
-  color: #1e293b;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.34);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.52),
+    inset 0 -2px 6px rgba(0, 162, 255, 0.14),
+    0 8px 20px -10px rgba(0, 70, 140, 0.42);
+  color: #0B132B;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0;
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: transform 0.2s cubic-bezier(0.3, 1.5, 0.5, 1), background 0.2s ease, box-shadow 0.2s ease;
 }
 .gw-root .fizlab-quiz-secondary-btn:hover:not(:disabled) {
-  background: #f1f5f9;
-  border-color: rgba(15, 23, 42, 0.28);
+  background: rgba(255, 255, 255, 0.56);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.96),
+    inset 0 0 0 1px rgba(0, 162, 255, 0.36),
+    inset 0 -2px 6px rgba(0, 162, 255, 0.2),
+    0 10px 22px -10px rgba(0, 70, 140, 0.48);
 }
 .gw-root .fizlab-quiz-secondary-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 .gw-root[data-theme="dark"] .fizlab-quiz-secondary-btn {
-  background: rgba(15, 25, 46, 0.85);
-  border-color: rgba(148, 163, 184, 0.24);
-  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.34),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 8px 20px -10px rgba(0, 0, 0, 0.65);
+  color: #F1F7FF;
 }
 .gw-root[data-theme="dark"] .fizlab-quiz-secondary-btn:hover:not(:disabled) {
-  background: rgba(30, 46, 80, 0.95);
-  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.42),
+    inset 0 0 0 1px rgba(46, 155, 255, 0.42),
+    0 10px 22px -8px rgba(0, 0, 0, 0.72);
 }
 
 .gw-root .fizlab-lib-btn {
@@ -1315,11 +1586,16 @@ const labWorkspaceOverrides = `
   align-items: center;
   gap: 6px;
   min-height: 36px;
-  padding: 6px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(15, 23, 42, 0.16);
-  background: #ffffff;
-  color: #1e293b;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.36);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.52),
+    inset 0 -2px 6px rgba(0, 162, 255, 0.14),
+    0 8px 18px -10px rgba(0, 70, 140, 0.4);
+  color: #0B132B;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0;
@@ -1327,69 +1603,89 @@ const labWorkspaceOverrides = `
   flex-shrink: 0;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: transform 0.2s cubic-bezier(0.3, 1.5, 0.5, 1), background 0.2s ease, box-shadow 0.2s ease;
 }
 .gw-root .fizlab-lib-btn:hover:not(:disabled) {
-  background: #f0f9ff;
-  border-color: rgba(2, 132, 199, 0.45);
+  background: rgba(255, 255, 255, 0.62);
+  transform: translateY(-0.5px);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.96),
+    inset 0 0 0 1px rgba(0, 162, 255, 0.36),
+    0 10px 20px -10px rgba(0, 70, 140, 0.45);
 }
 .gw-root .fizlab-lib-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 .gw-root[data-theme="dark"] .fizlab-lib-btn {
-  background: rgba(15, 25, 46, 0.85);
-  border-color: rgba(148, 163, 184, 0.24);
-  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.34),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 8px 18px -10px rgba(0, 0, 0, 0.65);
+  color: #F1F7FF;
 }
 .gw-root[data-theme="dark"] .fizlab-lib-btn:hover:not(:disabled) {
-  background: rgba(30, 46, 80, 0.95);
-  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.42),
+    inset 0 0 0 1px rgba(46, 155, 255, 0.42),
+    0 10px 20px -8px rgba(0, 0, 0, 0.72);
 }
 
 .gw-root .fizlab-lib-select {
   height: 36px;
   max-width: 100%;
-  padding: 0 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(15, 23, 42, 0.16);
-  background: #ffffff;
-  color: #0f172a;
+  padding: 0 12px;
+  border-radius: 14px;
+  border: none;
+  background: rgba(255, 255, 255, 0.42);
+  box-shadow:
+    inset 0 0 0 1px rgba(11, 19, 43, 0.1),
+    inset 0 1px 2px rgba(0, 40, 90, 0.06);
+  color: #0B132B;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 540;
   letter-spacing: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
 }
 .gw-root[data-theme="dark"] .fizlab-lib-select {
-  background: rgba(15, 25, 46, 0.9);
-  border-color: rgba(148, 163, 184, 0.24);
-  color: #e2e8f0;
+  background: rgba(16, 28, 60, 0.84);
+  box-shadow:
+    inset 0 0 0 1px rgba(241, 247, 255, 0.14),
+    inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  color: #F1F7FF;
 }
 
 .gw-root .fizlab-lib-input {
-  width: 52px;
+  width: 54px;
   height: 36px;
   padding: 0 8px;
-  border-radius: 10px;
-  border: 1px solid rgba(15, 23, 42, 0.16);
-  background: #ffffff;
-  color: #0f172a;
+  border-radius: 14px;
+  border: none;
+  background: rgba(255, 255, 255, 0.42);
+  box-shadow:
+    inset 0 0 0 1px rgba(11, 19, 43, 0.1),
+    inset 0 1px 2px rgba(0, 40, 90, 0.06);
+  color: #0B132B;
   font-size: 12px;
   font-weight: 600;
   text-align: center;
   letter-spacing: 0;
 }
 .gw-root[data-theme="dark"] .fizlab-lib-input {
-  background: rgba(15, 25, 46, 0.9);
-  border-color: rgba(148, 163, 184, 0.24);
-  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 0 0 0 1px rgba(241, 247, 255, 0.14),
+    inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  color: #F1F7FF;
 }
 
 .gw-root.fizlab-gw-lab .fizlab-bottom-dock {
-  padding: 14px 16px;
-  border-radius: 20px;
+  padding: 14px 18px;
+  border-radius: 26px;
 }
 .gw-root.fizlab-gw-lab .fizlab-rail {
   position: absolute;
@@ -1397,10 +1693,14 @@ const labWorkspaceOverrides = `
   top: 50%;
   transform: translateY(-50%);
   margin-top: 0;
+  border-radius: 999px;
+}
+.gw-root.fizlab-gw-lab .fizlab-rail button {
+  border-radius: 999px;
 }
 .gw-root.fizlab-gw-lab .fizlab-rail button[aria-current="page"] {
-  background: var(--gw-brand);
-  color: var(--gw-brand-ink);
+  background: linear-gradient(160deg, #2E9BFF 0%, #0050CC 100%);
+  color: #FFFFFF;
 }
 @media (min-width: 1550px) {
   .gw-root.fizlab-gw-lab {
@@ -1415,18 +1715,28 @@ const labWorkspaceOverrides = `
   .fizlab-neo-topbar {
     height: auto;
     min-height: 48px;
-    padding: 6px 12px;
-    border-radius: 20px;
+    padding: 8px 14px;
+    border-radius: 24px;
     flex-wrap: wrap;
     gap: 8px;
   }
   .fizlab-neo-card {
-    border-radius: 30px;
-    padding: 20px 18px;
+    border-radius: 26px;
+    padding: 16px 16px;
   }
   .gw-root.fizlab-gw-lab .fizlab-lab-dock button {
-    padding: 6px 10px;
+    padding: 6px 11px;
     font-size: 11px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gw-root .fizlab-neo-card,
+  .gw-root .fizlab-neo-btn,
+  .gw-root .fizlab-neo-icon,
+  .gw-root .fizlab-neo-topic-row,
+  .gw-root .fizlab-quiz-secondary-btn,
+  .gw-root .fizlab-lib-btn {
+    transition: none;
   }
 }
 `;

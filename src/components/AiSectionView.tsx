@@ -156,7 +156,15 @@ export default function AiSectionView({ onBack }: AiSectionViewProps) {
         }),
       });
 
-      const data = (await res.json()) as { answer?: string; error?: string };
+      const rawText = await res.text();
+      let data: { answer?: string; error?: string } = {};
+      if (rawText) {
+        try {
+          data = JSON.parse(rawText) as { answer?: string; error?: string };
+        } catch {
+          data = {};
+        }
+      }
       if (!res.ok || !data.answer) {
         throw new Error(
           data.error || 'AI javobini olishda xatolik yuz berdi.'
@@ -550,7 +558,19 @@ export default function AiSectionView({ onBack }: AiSectionViewProps) {
                 </div>
               )}
 
-              {errorMsg && <div className="jm-error-banner">{errorMsg}</div>}
+              {errorMsg && (
+                <div className="jm-error-banner" role="alert">
+                  <span>{errorMsg}</span>
+                  <button
+                    type="button"
+                    className="jm-error-close"
+                    aria-label="Xatolik xabarini yopish"
+                    onClick={() => setErrorMsg(null)}
+                  >
+                    <X size={14} aria-hidden="true" />
+                  </button>
+                </div>
+              )}
 
               <textarea
                 id="jm-prompt-input"
@@ -983,13 +1003,34 @@ body.jm-menu-open {
   color: #5c5c5c;
 }
 .jm-error-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
   margin-bottom: 8px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border-radius: 10px;
   background: rgba(220, 38, 38, 0.12);
   border: 1px solid rgba(220, 38, 38, 0.25);
   font-size: 12.5px;
+  line-height: 1.45;
   color: #991b1b;
+  overflow-wrap: anywhere;
+}
+.jm-error-close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 0;
+  padding: 2px;
+  cursor: pointer;
+  color: #991b1b;
+  opacity: 0.75;
+}
+.jm-error-close:hover {
+  opacity: 1;
 }
 
 .jm-chat-panel {

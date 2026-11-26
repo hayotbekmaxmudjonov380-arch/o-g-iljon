@@ -14,7 +14,7 @@ export default function ThemeToggle({
 }: ThemeToggleProps) {
   const inputId = useId();
   const isDark = theme === 'dark';
-  const iconSize = compact ? 22 : 32;
+  const iconSize = compact ? 18 : 26;
   const labelText = isDark
     ? 'Kunduzgi rejimga o‘tish'
     : 'Tungi rejimga o‘tish';

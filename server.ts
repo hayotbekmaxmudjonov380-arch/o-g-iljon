@@ -3,6 +3,7 @@ import express, { type Request, type Response } from 'express';
 import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseGeminiError } from './src/utils/aiErrorUtils.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,16 +11,52 @@ const __dirname = path.dirname(__filename);
 const PORT = Number(process.env.PORT || 3000);
 const isProduction = process.env.NODE_ENV === 'production';
 
-const ai = process.env.GEMINI_API_KEY
-  ? new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
+let cachedKey = '';
+let cachedClient: GoogleGenAI | null = null;
+
+function getAiClient(): GoogleGenAI | null {
+  const apiKey = (process.env.GEMINI_API_KEY ?? '').trim();
+  if (!apiKey) {
+    cachedKey = '';
+    cachedClient = null;
+    return null;
+  }
+  if (!cachedClient || cachedKey !== apiKey) {
+    cachedKey = apiKey;
+    cachedClient = new GoogleGenAI({
+      apiKey,
       httpOptions: {
         headers: {
           'User-Agent': 'aistudio-build',
         },
       },
-    })
-  : null;
+    });
+  }
+  return cachedClient;
+}
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function generateWithRetry(
+  client: GoogleGenAI,
+  params: Parameters<GoogleGenAI['models']['generateContent']>[0],
+  maxAttempts = 3
+) {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      return await client.models.generateContent(params);
+    } catch (err: unknown) {
+      lastError = err;
+      const parsed = parseGeminiError(err);
+      if (!parsed.retryable || attempt === maxAttempts - 1) {
+        throw err;
+      }
+      await wait(450 * 2 ** attempt);
+    }
+  }
+  throw lastError;
+}
 
 interface ChatHistoryTurn {
   role: 'user' | 'model';
@@ -32,8 +69,10 @@ async function startServer() {
 
   app.post('/api/ai/ask', async (req: Request, res: Response) => {
     try {
+      const ai = getAiClient();
       if (!ai) {
         res.status(503).json({
+          code: 'MISSING_API_KEY',
           error:
             'GEMINI_API_KEY topilmadi. Settings > Secrets bo‘limida API kalitni tekshiring.',
         });
@@ -88,7 +127,7 @@ async function startServer() {
           'Ushbu biriktirilgan faylni molekulyar fizika nuqtai nazaridan tahlil qilib bering.',
       });
 
-      const response = await ai.models.generateContent({
+      const response = await generateWithRetry(ai, {
         model: 'gemini-4-hydrogen',
         contents: [
           ...historyParts,
@@ -116,9 +155,12 @@ async function startServer() {
 
       res.json({ answer });
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : 'AI xizmatida xatolik yuz berdi.';
-      res.status(500).json({ error: message });
+      const parsed = parseGeminiError(err);
+      console.error(`[AI /api/ai/ask] ${parsed.code} (${parsed.httpStatus})`);
+      res.status(parsed.httpStatus).json({
+        code: parsed.code,
+        error: parsed.userMessage,
+      });
     }
   });
 

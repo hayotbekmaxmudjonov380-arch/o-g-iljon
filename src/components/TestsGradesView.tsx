@@ -200,7 +200,7 @@ export default function TestsGradesView({
                 </div>
 
                 {/* Active Question Card */}
-                <div className="rounded-2xl border border-slate-900/10 dark:border-white/12 bg-slate-50/75 dark:bg-slate-900/55 p-4 sm:p-5 space-y-4">
+                <div className="rounded-2xl border border-white/60 dark:border-white/12 bg-white/45 dark:bg-white/[0.04] p-4 sm:p-5 space-y-4">
                   <h3 className="text-[15px] sm:text-[17px] font-semibold text-slate-900 dark:text-slate-100 leading-relaxed">
                     {activeQuestion.id}. {activeQuestion.question}
                   </h3>
@@ -223,10 +223,10 @@ export default function TestsGradesView({
                           className="fizlab-quiz-option"
                         >
                           <span
-                            className={`w-8 h-8 rounded-lg font-display font-bold text-xs flex items-center justify-center shrink-0 border transition-colors duration-150 ${
+                            className={`w-8 h-8 rounded-full font-display font-bold text-xs flex items-center justify-center shrink-0 border transition-all duration-150 ${
                               isSelected
-                                ? 'bg-sky-600 text-white border-sky-600 dark:bg-sky-400 dark:text-slate-950 dark:border-sky-400'
-                                : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800/80 dark:text-slate-300 dark:border-slate-700'
+                                ? 'bg-gradient-to-br from-[#2E9BFF] to-[#0050CC] text-white border-[#2E9BFF]/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]'
+                                : 'bg-white/60 text-[#0B132B] border-white/75 dark:bg-white/10 dark:text-[#F1F7FF] dark:border-white/16'
                             }`}
                           >
                             {optKey}
@@ -290,7 +290,7 @@ export default function TestsGradesView({
               evaluation && (
                 <div className="space-y-5">
                   {/* Results Summary Card */}
-                  <div className="rounded-2xl border border-slate-900/10 dark:border-white/12 bg-slate-50/85 dark:bg-slate-900/65 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="rounded-2xl border border-white/65 dark:border-white/14 bg-white/50 dark:bg-white/[0.05] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1.5">
                       <div className="inline-flex items-center gap-2 text-xs font-medium text-sky-700 dark:text-sky-300">
                         <Award size={16} aria-hidden="true" />
@@ -352,7 +352,7 @@ export default function TestsGradesView({
                         return (
                           <div
                             key={q.id}
-                            className="rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-950/60 p-4 space-y-2.5"
+                            className="rounded-2xl border border-white/60 dark:border-white/12 bg-white/45 dark:bg-white/[0.04] p-4 space-y-2.5"
                           >
                             <div className="flex items-start justify-between gap-3">
                               <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-snug">
