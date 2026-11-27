@@ -4,7 +4,6 @@ import {
   LABORATORY_SUBSECTIONS,
   type LaboratorySubSectionId,
 } from '../data/laboratorySectionsData';
-import PracticalLabsView from './PracticalLabsView';
 
 interface LaboratorySectionsViewProps {
   selectedSubSectionId: LaboratorySubSectionId | null;
@@ -19,15 +18,10 @@ export default function LaboratorySectionsView({
 }: LaboratorySectionsViewProps) {
   const activeSubSection = getLaboratorySubSectionById(selectedSubSectionId);
 
-  if (activeSubSection?.id === 'amaliy-mashgulotlar') {
-    return (
-      <PracticalLabsView onBack={() => onSelectSubSectionId(null)} />
-    );
-  }
-
   // Sub-section empty workspace ready for building from scratch
   if (activeSubSection) {
-    const ActiveIcon = FlaskConical;
+    const ActiveIcon =
+      activeSubSection.id === 'amaliy-mashgulotlar' ? Compass : FlaskConical;
 
     return (
       <div className="w-full max-w-[880px] mx-auto my-auto py-2 space-y-4">
