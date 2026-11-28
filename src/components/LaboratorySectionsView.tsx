@@ -4,32 +4,43 @@ import {
   LABORATORY_SUBSECTIONS,
   type LaboratorySubSectionId,
 } from '../data/laboratorySectionsData';
+import { PRACTICAL_LABS } from '../data/practicalLabsData';
+import type { FizLabTheme } from '../types/fizlab';
+import PracticalLabsView from './PracticalLabsView';
 
 interface LaboratorySectionsViewProps {
   selectedSubSectionId: LaboratorySubSectionId | null;
   onSelectSubSectionId: (id: LaboratorySubSectionId | null) => void;
   onBackToSections: () => void;
+  theme?: FizLabTheme;
 }
 
 export default function LaboratorySectionsView({
   selectedSubSectionId,
   onSelectSubSectionId,
   onBackToSections,
+  theme = 'dark',
 }: LaboratorySectionsViewProps) {
   const activeSubSection = getLaboratorySubSectionById(selectedSubSectionId);
 
-  // Sub-section empty workspace ready for building from scratch
-  if (activeSubSection) {
-    const ActiveIcon =
-      activeSubSection.id === 'amaliy-mashgulotlar' ? Compass : FlaskConical;
+  if (activeSubSection?.id === 'amaliy-mashgulotlar') {
+    return (
+      <PracticalLabsView
+        onBack={() => onSelectSubSectionId(null)}
+        theme={theme}
+      />
+    );
+  }
 
+  // Empty workspace for Laboratoriya mashg'ulotlari ready to build from scratch
+  if (activeSubSection) {
     return (
       <div className="w-full max-w-[880px] mx-auto my-auto py-2 space-y-4">
         <div className="fizlab-neo-card gw-reveal">
           <div className="flex items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-3 min-w-0">
               <span className="fizlab-neo-icon">
-                <ActiveIcon size={16} strokeWidth={2} aria-hidden="true" />
+                <FlaskConical size={16} strokeWidth={2} aria-hidden="true" />
               </span>
               <div className="min-w-0">
                 <div className="text-xs font-mono-tabular text-sky-700/85 dark:text-sky-300/85">
@@ -83,8 +94,8 @@ export default function LaboratorySectionsView({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {LABORATORY_SUBSECTIONS.map((sub) => {
-          const Icon =
-            sub.id === 'amaliy-mashgulotlar' ? Compass : FlaskConical;
+          const isPractical = sub.id === 'amaliy-mashgulotlar';
+          const Icon = isPractical ? Compass : FlaskConical;
           return (
             <button
               key={sub.id}
@@ -115,10 +126,33 @@ export default function LaboratorySectionsView({
                 />
               </div>
 
-              <div
-                className="fizlab-neo-well min-h-[160px] mt-auto"
-                aria-hidden="true"
-              />
+              {isPractical ? (
+                <div className="fizlab-neo-well min-h-[160px] mt-auto flex flex-col justify-between gap-3">
+                  <div className="space-y-2">
+                    {PRACTICAL_LABS.map((lab) => (
+                      <div
+                        key={lab.id}
+                        className="flex items-baseline gap-2 text-xs leading-snug text-slate-700 dark:text-slate-300"
+                      >
+                        <span className="font-mono-tabular font-semibold text-sky-700 dark:text-sky-300 shrink-0">
+                          {lab.code}
+                        </span>
+                        <span className="font-medium text-slate-900 dark:text-slate-100">
+                          {lab.shortTitle}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-[11px] font-mono-tabular text-sky-700/85 dark:text-sky-300/85">
+                    9-sinf · {PRACTICAL_LABS.length} ta interaktiv mashg‘ulot
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className="fizlab-neo-well min-h-[160px] mt-auto"
+                  aria-hidden="true"
+                />
+              )}
             </button>
           );
         })}

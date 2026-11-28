@@ -250,19 +250,24 @@ export default function HeatEquilibriumPractical() {
               inputMode="decimal"
               value={prediction}
               onChange={(event) => setPrediction(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !mixed) {
+                  handleMix();
+                }
+              }}
               disabled={mixed}
               placeholder="masalan: 44"
               aria-label="Aralashma temperaturasi, Selsiy"
-              className="w-full rounded-xl border border-slate-300/70 bg-white/80 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-sky-500 disabled:opacity-50 dark:border-white/15 dark:bg-slate-900/50 dark:text-white"
+              className="w-full rounded-xl border border-white/75 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#00A2FF] focus:ring-2 focus:ring-[#00A2FF]/25 disabled:opacity-50 dark:border-white/15 dark:bg-white/[0.07] dark:text-white"
             />
-            <span className="text-xs text-slate-500 dark:text-slate-400">
+            <span className="text-xs text-slate-600 dark:text-slate-400">
               °C
             </span>
             {!mixed ? (
               <button
                 type="button"
                 onClick={handleMix}
-                className="fizlab-neo-btn shrink-0 !m-0 !px-3 !py-2 text-[11px]"
+                className="fizlab-neo-btn shrink-0 !m-0 !px-3.5 !py-2 text-[11px]"
               >
                 <ArrowRight size={13} aria-hidden="true" />
                 <span>Aralashtirish</span>
@@ -271,7 +276,7 @@ export default function HeatEquilibriumPractical() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="fizlab-neo-btn shrink-0 !m-0 !px-3 !py-2 text-[11px]"
+                className="fizlab-quiz-secondary-btn shrink-0 !py-2 !px-3.5 !text-[11px]"
               >
                 <RotateCcw size={13} aria-hidden="true" />
                 <span>Qayta</span>
@@ -286,6 +291,7 @@ export default function HeatEquilibriumPractical() {
 
           {feedback && (
             <div
+              role="status"
               className={`mt-2 flex items-start gap-1.5 rounded-xl px-3 py-2 text-[11px] ${
                 feedback.status === 'correct'
                   ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300'
@@ -303,8 +309,13 @@ export default function HeatEquilibriumPractical() {
         </div>
 
         <div className="fizlab-neo-well !p-3">
-          <div className="mb-2 text-xs font-semibold text-slate-900 dark:text-white">
-            O‘lchov natijasi
+          <div className="mb-2 flex items-center justify-between gap-2 text-xs font-semibold text-slate-900 dark:text-white">
+            <span>O‘lchov natijasi</span>
+            {mixed && (
+              <span className="font-mono-tabular text-[11px] font-medium text-sky-700 dark:text-sky-300">
+                Jami massa: {result.totalMassG} g
+              </span>
+            )}
           </div>
 
           {!mixed ? (

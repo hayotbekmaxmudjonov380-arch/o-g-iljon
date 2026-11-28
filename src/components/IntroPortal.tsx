@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Atom, ArrowRight, FlaskConical } from 'lucide-react';
+import { ArrowRight, FlaskConical } from 'lucide-react';
 import { FizLabTheme, WorkspaceSection } from '../types/fizlab';
 import ThemeToggle from './ThemeToggle';
 
@@ -69,14 +69,19 @@ export default function IntroPortal({
       <div className="relative z-10 pointer-events-none flex flex-col justify-between h-full px-5 py-5 md:px-10 md:py-7">
         {/* Minimal Top Header */}
         <header className="pointer-events-auto flex items-center justify-between gap-4 max-w-6xl w-full mx-auto">
-          <div className="flex items-center gap-3 whitespace-nowrap shrink-0 px-3 py-1.5 rounded-full glass-hud">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2E9BFF] to-[#0050CC] shadow-[inset_0_1px_1px_rgba(255,255,255,0.8)] flex items-center justify-center text-white">
-              <Atom className="w-4.5 h-4.5" />
-            </div>
-            <span className="font-display text-lg font-bold tracking-tight text-[#0B132B] dark:text-[#F1F7FF] pr-1.5">
-              FizLab
-            </span>
-          </div>
+          <button
+            type="button"
+            onClick={() => handleEnter('laboratoriya')}
+            aria-label="Bosh sahifaga o‘tish"
+            title="Bosh sahifaga o‘tish"
+            className="flex items-center whitespace-nowrap shrink-0 px-3.5 py-1.5 rounded-full glass-hud cursor-pointer transition-transform hover:scale-[1.03] active:scale-[0.97]"
+          >
+            <img
+              src="/logo.png"
+              alt="FizLab 3D"
+              className="h-8 sm:h-9 w-auto object-contain select-none"
+            />
+          </button>
 
           <div className="flex items-center gap-2.5 shrink-0">
             <ThemeToggle theme={theme} onToggle={onToggleTheme} />

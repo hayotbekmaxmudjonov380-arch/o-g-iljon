@@ -1,12 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+  Atom,
   CheckCircle2,
   Droplets,
+  Eye,
   RotateCcw,
   Ruler,
   Target,
   XCircle,
 } from 'lucide-react';
+import {
+  MoleculeFilmSceneEngine,
+  type MoleculeCameraPreset,
+} from '../../three/practicals/MoleculeFilmSceneEngine';
+import type { FizLabTheme } from '../../types/fizlab';
 import {
   estimateMoleculeSize,
   formatFixed,
@@ -19,9 +26,19 @@ import {
   parseNumericInput,
 } from '../../utils/practicalPhysics';
 
-const RULER_MAX_CM = 10;
+interface MoleculeSizePracticalProps {
+  theme?: FizLabTheme;
+}
 
-export default function MoleculeSizePractical() {
+const CAMERA_PRESETS: { id: MoleculeCameraPreset; label: string }[] = [
+  { id: 'overview', label: 'Umumiy' },
+  { id: 'top', label: 'Yuqoridan' },
+  { id: 'closeup', label: 'Yaqin' },
+];
+
+export default function MoleculeSizePractical({
+  theme = 'dark',
+}: MoleculeSizePracticalProps) {
   const [dropped, setDropped] = useState(false);
   const [measuredDiameter, setMeasuredDiameter] = useState<number | null>(null);
   const [diameterInput, setDiameterInput] = useState('');
@@ -32,16 +49,82 @@ export default function MoleculeSizePractical() {
   >('idle');
   const [answerMessage, setAnswerMessage] = useState('');
 
+  const [camPreset, setCamPreset] = useState<MoleculeCameraPreset>('overview');
+  const [showMolecules, setShowMolecules] = useState(false);
+  const [contextLost, setContextLost] = useState(false);
+
+  const mountRef = useRef<HTMLDivElement | null>(null);
+  const engineRef = useRef<MoleculeFilmSceneEngine | null>(null);
+
   const measurement =
     measuredDiameter !== null
       ? estimateMoleculeSize(MOLECULE_SIZE_OIL_VOLUME_MM3, measuredDiameter)
       : null;
 
-  const displayedDiameter =
-    measuredDiameter ?? MOLECULE_SIZE_TARGET_FILM_DIAMETER_CM;
-  const filmWidthPercent = (displayedDiameter / RULER_MAX_CM) * 100;
-
   const isSolved = answerStatus === 'correct';
+
+  useEffect(() => {
+    const container = mountRef.current;
+    if (!container) return;
+
+    const engine = new MoleculeFilmSceneEngine(
+      container,
+      {
+        dropped: false,
+        measuredDiameterCm: null,
+        targetFilmDiameterCm: MOLECULE_SIZE_TARGET_FILM_DIAMETER_CM,
+        showMolecules: false,
+      },
+      theme
+    );
+    engineRef.current = engine;
+
+    const canvas = container.querySelector('canvas');
+    const handleContextLost = (e: Event) => {
+      e.preventDefault();
+      setContextLost(true);
+    };
+    const handleContextRestored = () => {
+      setContextLost(false);
+    };
+
+    if (canvas) {
+      canvas.addEventListener('webglcontextlost', handleContextLost);
+      canvas.addEventListener('webglcontextrestored', handleContextRestored);
+    }
+
+    return () => {
+      if (canvas) {
+        canvas.removeEventListener('webglcontextlost', handleContextLost);
+        canvas.removeEventListener(
+          'webglcontextrestored',
+          handleContextRestored
+        );
+      }
+      engine.dispose();
+      engineRef.current = null;
+    };
+    // Mount WebGL canvas once per view lifecycle; state & theme sync below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    engineRef.current?.updateState({
+      dropped,
+      measuredDiameterCm: measuredDiameter,
+      targetFilmDiameterCm: MOLECULE_SIZE_TARGET_FILM_DIAMETER_CM,
+      showMolecules,
+    });
+  }, [dropped, measuredDiameter, showMolecules]);
+
+  useEffect(() => {
+    engineRef.current?.setTheme(theme);
+  }, [theme]);
+
+  const handleCameraPreset = (preset: MoleculeCameraPreset) => {
+    setCamPreset(preset);
+    engineRef.current?.setCameraPreset(preset);
+  };
 
   const handleDrop = () => {
     setDropped(true);
@@ -51,6 +134,7 @@ export default function MoleculeSizePractical() {
     setAnswerInput('');
     setAnswerStatus('idle');
     setAnswerMessage('');
+    engineRef.current?.replayDrop();
   };
 
   const handleCheckDiameter = () => {
@@ -112,6 +196,9 @@ export default function MoleculeSizePractical() {
     setAnswerInput('');
     setAnswerStatus('idle');
     setAnswerMessage('');
+    setShowMolecules(false);
+    setCamPreset('overview');
+    engineRef.current?.setCameraPreset('overview');
   };
 
   const steps = [
@@ -123,93 +210,123 @@ export default function MoleculeSizePractical() {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-4">
-        <div className="fizlab-neo-well !p-4">
-          <div className="flex items-center justify-between gap-2 mb-3">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.95fr)] gap-4 items-start">
+        <div className="fizlab-neo-well !p-4 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <span className="fizlab-neo-icon !w-8 !h-8">
                 <Droplets size={15} aria-hidden="true" />
               </span>
               <div>
                 <div className="text-[11px] font-mono-tabular text-sky-700/85 dark:text-sky-300/85">
-                  Tajriba maydoni
+                  3D Tajriba stendi
                 </div>
                 <div className="text-sm font-semibold text-slate-900 dark:text-white">
                   Suv yuzasidagi moy plyonkasi
                 </div>
               </div>
             </div>
-            <span className="text-[11px] text-slate-600 dark:text-slate-400">
+            <span className="font-mono-tabular text-[11px] font-semibold text-sky-800 dark:text-sky-200">
               V = 0,004 mm³
             </span>
           </div>
 
-          <div className="relative mx-auto w-full max-w-[320px]">
-            <div className="relative aspect-square overflow-hidden rounded-[24px] bg-gradient-to-br from-sky-100 via-sky-200 to-cyan-200 ring-1 ring-inset ring-white/60 dark:from-sky-900/60 dark:via-sky-950/60 dark:to-cyan-950/70 dark:ring-white/10">
-              <div
-                className="absolute inset-0 opacity-35"
-                style={{
-                  backgroundImage:
-                    'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent 55%), radial-gradient(circle at 70% 65%, rgba(255,255,255,0.5), transparent 50%)',
-                }}
-                aria-hidden="true"
-              />
+          {/* Camera presets & monolayer toggle cleanly docked above the 3D stage */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {CAMERA_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  aria-pressed={camPreset === preset.id}
+                  onClick={() => handleCameraPreset(preset.id)}
+                  className="fizlab-sim-ctrl"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              aria-pressed={showMolecules}
+              onClick={() => setShowMolecules((prev) => !prev)}
+              title="Bir qatlamli molekulyar tuzilmani ko‘rsatish"
+              className="fizlab-sim-ctrl"
+            >
+              <Atom size={12} aria-hidden="true" />
+              <span>Molekulalar</span>
+            </button>
+          </div>
 
-              <div
-                className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-300/80 ring-2 ring-amber-400/70 shadow-[0_0_38px_rgba(251,191,36,0.55)] transition-all duration-1000 ease-out ${
-                  dropped ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
-                }`}
-                style={{
-                  width: `${filmWidthPercent}%`,
-                  height: `${filmWidthPercent}%`,
-                }}
-                aria-hidden="true"
-              />
+          {/* Interactive 3D Three.js Stage (no backdrop-blur over WebGL canvas) */}
+          <div className="relative w-full h-[330px] sm:h-[400px] rounded-2xl overflow-hidden border border-white/55 dark:border-white/14 bg-[#DCEBF5] dark:bg-[#050A1C]">
+            <div
+              ref={mountRef}
+              className="w-full h-full cursor-grab active:cursor-grabbing"
+              aria-label="Suv yuzasidagi moy plyonkasi — 3D laboratoriya tajribasi"
+            />
 
-              {measuredDiameter !== null && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div
-                    className="flex items-center gap-1"
-                    style={{ width: `${filmWidthPercent}%` }}
-                  >
-                    <span className="h-px flex-1 bg-slate-900/60 dark:bg-white/70" />
-                    <span className="rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-semibold text-slate-900 shadow-sm dark:bg-slate-900/80 dark:text-white">
-                      {formatFixed(measuredDiameter, 1)} cm
-                    </span>
-                    <span className="h-px flex-1 bg-slate-900/60 dark:bg-white/70" />
+            {contextLost && (
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#DCEBF5]/95 dark:bg-[#050A1C]/95 p-5 text-center">
+                <div className="glass-hud rounded-xl p-4 max-w-xs space-y-1">
+                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    3D sahna tiklanmoqda
                   </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                    WebGL konteksti qayta ishga tushmoqda.
+                  </p>
                 </div>
-              )}
+              </div>
+            )}
 
-              {!dropped && (
-                <div className="absolute inset-0 grid place-items-center">
-                  <span className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-medium text-slate-700 backdrop-blur-sm dark:bg-slate-900/60 dark:text-slate-200">
+            {/* Top-left live stage status (no backdrop-blur) */}
+            <div className="pointer-events-none absolute top-2.5 left-2.5 z-10 max-w-[260px]">
+              <div className="glass-hud rounded-xl px-2.5 py-1.5 text-[11px] leading-snug">
+                {!dropped ? (
+                  <span className="font-medium text-slate-800 dark:text-slate-200">
                     Tomchi tomizilmagan
                   </span>
-                </div>
-              )}
+                ) : measuredDiameter !== null ? (
+                  <span className="font-mono-tabular font-semibold text-emerald-700 dark:text-emerald-300">
+                    D = {formatFixed(measuredDiameter, 1)} sm tasdiqlandi
+                  </span>
+                ) : (
+                  <span className="font-medium text-sky-800 dark:text-sky-200">
+                    Chizg‘ich bo‘ylab plyonka diametrini o‘qing
+                  </span>
+                )}
+              </div>
             </div>
 
-            <div className="mt-2 rounded-xl bg-white/55 px-2 py-1.5 ring-1 ring-inset ring-slate-900/10 dark:bg-white/5 dark:ring-white/10">
-              <div className="flex items-end justify-between">
-                {Array.from({ length: RULER_MAX_CM + 1 }).map((_, index) => (
-                  <div key={index} className="flex flex-col items-center gap-0.5">
-                    <span
-                      className={`w-px bg-slate-500/70 dark:bg-slate-300/60 ${
-                        index % 5 === 0 ? 'h-3' : 'h-1.5'
-                      }`}
-                    />
-                    <span className="text-[8px] font-mono-tabular text-slate-600 dark:text-slate-400">
-                      {index}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-0.5 flex items-center gap-1 text-[9px] text-slate-500 dark:text-slate-400">
-                <Ruler size={10} aria-hidden="true" />
-                <span>Chizg‘ich, sm</span>
+            {/* Bottom-left orbit controls hint */}
+            <div className="pointer-events-none hidden sm:block absolute bottom-2.5 left-2.5 z-10">
+              <div className="glass-hud rounded-xl px-2.5 py-1 text-[10px] text-slate-700 dark:text-slate-300">
+                Sichqoncha: aylantirish · g‘ildirak: yaqinlashtirish
               </div>
             </div>
+
+            {/* Bottom-right ruler quick focus helper */}
+            {dropped && camPreset !== 'top' && (
+              <div className="absolute bottom-2.5 right-2.5 z-10">
+                <button
+                  type="button"
+                  onClick={() => handleCameraPreset('top')}
+                  className="fizlab-sim-ctrl"
+                >
+                  <Ruler size={12} aria-hidden="true" />
+                  <span>Chizg‘ichga qarash</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-600 dark:text-slate-400">
+            <span className="inline-flex items-center gap-1.5">
+              <Eye size={12} className="text-sky-600 dark:text-sky-400" aria-hidden="true" />
+              <span>
+                3D vannada talk kukuni va 0–10 sm chizg‘ich yordamida plyonka chetlarini kuzating
+              </span>
+            </span>
           </div>
         </div>
 
@@ -227,8 +344,8 @@ export default function MoleculeSizePractical() {
               <span>{dropped ? 'Qayta tomizish' : 'Tomchini tomizish'}</span>
             </button>
             <p className="mt-2 text-[11px] leading-snug text-slate-600 dark:text-slate-400">
-              Suyultirilgan moy tomchisi suv yuzasida bir molekula qalinlikdagi
-              plyonka hosil qiladi.
+              Pipetkadan tushgan moy tomchisi suv yuzasida talk kukunini chetga
+              surib, bir molekula qalinlikdagi plyonka hosil qiladi.
             </p>
           </div>
 
@@ -242,26 +359,42 @@ export default function MoleculeSizePractical() {
                 inputMode="decimal"
                 value={diameterInput}
                 onChange={(event) => setDiameterInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (
+                    event.key === 'Enter' &&
+                    dropped &&
+                    measuredDiameter === null
+                  ) {
+                    handleCheckDiameter();
+                  }
+                }}
                 disabled={!dropped || measuredDiameter !== null}
                 placeholder="masalan: 5,0"
                 aria-label="Plyonka diametri, santimetr"
-                className="w-full rounded-xl border border-slate-300/70 bg-white/80 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-sky-500 disabled:opacity-50 dark:border-white/15 dark:bg-slate-900/50 dark:text-white"
+                className="w-full rounded-xl border border-white/75 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#00A2FF] focus:ring-2 focus:ring-[#00A2FF]/25 disabled:opacity-50 dark:border-white/15 dark:bg-white/[0.07] dark:text-white"
               />
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-slate-600 dark:text-slate-400">
                 sm
               </span>
               <button
                 type="button"
                 onClick={handleCheckDiameter}
                 disabled={!dropped || measuredDiameter !== null}
-                className="fizlab-neo-btn shrink-0 !m-0 !px-3 !py-2 text-[11px] disabled:opacity-45"
+                className="fizlab-neo-btn shrink-0 !m-0 !px-3.5 !py-2 text-[11px] disabled:opacity-45"
               >
                 Tekshirish
               </button>
             </div>
             {diameterError && (
-              <p className="mt-2 flex items-start gap-1 text-[11px] text-rose-700 dark:text-rose-300">
-                <XCircle size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
+              <p
+                role="status"
+                className="mt-2 flex items-start gap-1 text-[11px] text-rose-700 dark:text-rose-300"
+              >
+                <XCircle
+                  size={13}
+                  className="mt-0.5 shrink-0"
+                  aria-hidden="true"
+                />
                 <span>{diameterError}</span>
               </p>
             )}
@@ -293,19 +426,28 @@ export default function MoleculeSizePractical() {
                 inputMode="decimal"
                 value={answerInput}
                 onChange={(event) => setAnswerInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (
+                    event.key === 'Enter' &&
+                    measurement !== null &&
+                    !isSolved
+                  ) {
+                    handleCheckAnswer();
+                  }
+                }}
                 disabled={measurement === null || isSolved}
                 placeholder="masalan: 2,0"
                 aria-label="Molekula diametri, nanometr"
-                className="w-full rounded-xl border border-slate-300/70 bg-white/80 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-sky-500 disabled:opacity-50 dark:border-white/15 dark:bg-slate-900/50 dark:text-white"
+                className="w-full rounded-xl border border-white/75 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#00A2FF] focus:ring-2 focus:ring-[#00A2FF]/25 disabled:opacity-50 dark:border-white/15 dark:bg-white/[0.07] dark:text-white"
               />
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-slate-600 dark:text-slate-400">
                 nm
               </span>
               <button
                 type="button"
                 onClick={handleCheckAnswer}
                 disabled={measurement === null || isSolved}
-                className="fizlab-neo-btn shrink-0 !m-0 !px-3 !py-2 text-[11px] disabled:opacity-45"
+                className="fizlab-neo-btn shrink-0 !m-0 !px-3.5 !py-2 text-[11px] disabled:opacity-45"
               >
                 Tekshirish
               </button>
@@ -313,6 +455,7 @@ export default function MoleculeSizePractical() {
 
             {answerStatus !== 'idle' && (
               <div
+                role="status"
                 className={`mt-2 flex items-start gap-1.5 rounded-xl px-3 py-2 text-[11px] ${
                   answerStatus === 'correct'
                     ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300'
@@ -320,9 +463,17 @@ export default function MoleculeSizePractical() {
                 }`}
               >
                 {answerStatus === 'correct' ? (
-                  <CheckCircle2 size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+                  <CheckCircle2
+                    size={14}
+                    className="mt-0.5 shrink-0"
+                    aria-hidden="true"
+                  />
                 ) : (
-                  <XCircle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+                  <XCircle
+                    size={14}
+                    className="mt-0.5 shrink-0"
+                    aria-hidden="true"
+                  />
                 )}
                 <span>{answerMessage}</span>
               </div>
@@ -332,7 +483,7 @@ export default function MoleculeSizePractical() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold text-sky-800 ring-1 ring-inset ring-sky-500/40 transition hover:bg-sky-500/10 dark:text-sky-300"
+                className="fizlab-quiz-secondary-btn mt-2 !py-1.5 !px-3.5 !text-[11px]"
               >
                 <RotateCcw size={12} aria-hidden="true" />
                 <span>Qayta bajarish</span>
@@ -344,7 +495,11 @@ export default function MoleculeSizePractical() {
 
       <div className="fizlab-neo-well !p-3">
         <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white">
-          <Target size={14} className="text-sky-600 dark:text-sky-400" aria-hidden="true" />
+          <Target
+            size={14}
+            className="text-sky-600 dark:text-sky-400"
+            aria-hidden="true"
+          />
           <span>Bajarish bosqichlari</span>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

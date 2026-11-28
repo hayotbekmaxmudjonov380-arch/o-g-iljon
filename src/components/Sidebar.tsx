@@ -1,5 +1,4 @@
 import {
-  Atom,
   BookOpen,
   Calculator,
   ChevronLeft,
@@ -98,17 +97,24 @@ export default function Sidebar({
           } gap-2 pb-4 mb-3 border-b border-slate-900/10 dark:border-white/10`}
         >
           {!compact && (
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-sky-600/15 dark:bg-sky-500/20 border border-sky-600/30 dark:border-sky-400/35 flex items-center justify-center text-sky-700 dark:text-sky-300 shrink-0">
-                <Atom className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="font-display text-lg font-bold text-slate-900 dark:text-white leading-tight truncate">
-                  FizLab
-                </div>
-                <div className="text-[11px] text-slate-600 dark:text-slate-400 truncate">
-                  {username} · Molekulyar fizika
-                </div>
+            <div className="min-w-0 space-y-1">
+              <button
+                type="button"
+                onClick={() => {
+                  onSelectSection('laboratoriya');
+                  if (isMobileDrawer) onCloseMobile();
+                }}
+                aria-label="Bosh sahifaga qaytish"
+                className="bg-transparent border-0 p-0 cursor-pointer flex items-center"
+              >
+                <img
+                  src="/logo.png"
+                  alt="FizLab 3D"
+                  className="h-8 w-auto object-contain select-none"
+                />
+              </button>
+              <div className="text-[11px] text-slate-600 dark:text-slate-400 truncate">
+                {username} · Molekulyar fizika
               </div>
             </div>
           )}

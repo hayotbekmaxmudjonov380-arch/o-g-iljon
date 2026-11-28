@@ -68,9 +68,21 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
       {/* Navbar (z-30) */}
       <header className="relative z-30 shrink-0 flex items-center justify-between px-6 py-4 md:px-12 lg:px-16">
         <div className="flex items-center gap-10">
-          <span className="text-lg font-semibold tracking-tight text-white sm:text-xl">
-            FizLab
-          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              focusLoginForm();
+            }}
+            aria-label="Bosh sahifa"
+            className="bg-transparent border-0 p-0 cursor-pointer flex items-center transition-transform hover:scale-[1.03] active:scale-[0.97]"
+          >
+            <img
+              src="/logo.png"
+              alt="FizLab 3D"
+              className="h-9 sm:h-11 w-auto object-contain select-none"
+            />
+          </button>
 
           <nav
             className="hidden md:flex items-center gap-7"

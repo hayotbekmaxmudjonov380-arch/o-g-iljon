@@ -14,11 +14,13 @@ import {
   PRACTICAL_LABS,
   type PracticalLabId,
 } from '../data/practicalLabsData';
+import type { FizLabTheme } from '../types/fizlab';
 import HeatEquilibriumPractical from './practicals/HeatEquilibriumPractical';
 import MoleculeSizePractical from './practicals/MoleculeSizePractical';
 
 interface PracticalLabsViewProps {
   onBack: () => void;
+  theme?: FizLabTheme;
 }
 
 const PRACTICAL_ICONS: Record<PracticalLabId, typeof Atom> = {
@@ -26,7 +28,10 @@ const PRACTICAL_ICONS: Record<PracticalLabId, typeof Atom> = {
   'heat-equilibrium': Thermometer,
 };
 
-export default function PracticalLabsView({ onBack }: PracticalLabsViewProps) {
+export default function PracticalLabsView({
+  onBack,
+  theme = 'dark',
+}: PracticalLabsViewProps) {
   const [selectedId, setSelectedId] = useState<PracticalLabId | null>(null);
   const activeLab = getPracticalLabById(selectedId);
 
@@ -78,9 +83,9 @@ export default function PracticalLabsView({ onBack }: PracticalLabsViewProps) {
           </div>
         </div>
 
-        <div className="fizlab-neo-card gw-reveal">
+        <div className="fizlab-neo-card fizlab-quiz-scope gw-reveal">
           {activeLab.id === 'molecule-size' ? (
-            <MoleculeSizePractical />
+            <MoleculeSizePractical theme={theme} />
           ) : (
             <HeatEquilibriumPractical />
           )}
@@ -99,14 +104,20 @@ export default function PracticalLabsView({ onBack }: PracticalLabsViewProps) {
             <div className="rounded-xl bg-sky-500/10 px-3 py-2 font-mono-tabular text-[12px] font-semibold text-sky-900 dark:text-sky-200">
               {activeLab.formula}
             </div>
-            <ul className="mt-2 space-y-1.5 text-[11px] leading-snug text-slate-600 dark:text-slate-400">
+            <ul className="mt-2.5 space-y-1.5 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
               {activeLab.theory.map((item) => (
-                <li key={item} className="flex items-start gap-1.5">
-                  <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-sky-500/80" />
+                <li key={item} className="flex items-start gap-2">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-500/80" />
                   <span>{item}</span>
                 </li>
               ))}
             </ul>
+            <div className="mt-3 pt-2.5 border-t border-slate-900/10 dark:border-white/10 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+              <span className="font-semibold text-sky-800 dark:text-sky-300">
+                Xulosa:{' '}
+              </span>
+              {activeLab.conclusion}
+            </div>
           </div>
 
           <div className="fizlab-neo-card gw-reveal">
@@ -118,20 +129,16 @@ export default function PracticalLabsView({ onBack }: PracticalLabsViewProps) {
                 Jihozlar va bajarish tartibi
               </h3>
             </div>
-            <div className="mb-2 flex flex-wrap gap-1.5">
-              {activeLab.equipment.map((item) => (
-                <span
-                  key={item}
-                  className="rounded-full bg-white/60 px-2 py-0.5 text-[10px] text-slate-700 ring-1 ring-inset ring-slate-900/10 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10"
-                >
-                  {item}
-                </span>
-              ))}
+            <div className="mb-3 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+              <span className="font-semibold text-slate-900 dark:text-white">
+                Kerakli jihozlar:{' '}
+              </span>
+              {activeLab.equipment.join(' · ')}
             </div>
-            <ol className="space-y-1 text-[11px] leading-snug text-slate-600 dark:text-slate-400">
+            <ol className="space-y-1.5 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
               {activeLab.steps.map((step, index) => (
                 <li key={step} className="flex items-start gap-2">
-                  <span className="mt-0.5 grid h-4 w-4 shrink-0 place-content-center rounded-full bg-sky-500/15 font-mono-tabular text-[9px] font-semibold text-sky-700 dark:text-sky-300">
+                  <span className="mt-0.5 grid h-4 w-4 shrink-0 place-content-center rounded-full bg-sky-500/15 font-mono-tabular text-[10px] font-semibold text-sky-700 dark:text-sky-300">
                     {index + 1}
                   </span>
                   <span>{step}</span>
@@ -172,50 +179,56 @@ export default function PracticalLabsView({ onBack }: PracticalLabsViewProps) {
           </button>
         </div>
 
-        <div className="fizlab-neo-well">
-          <p className="mb-3 text-xs leading-snug text-slate-600 dark:text-slate-400">
-            9-sinf fizika darsligidagi amaliy mashg‘ulotlar asosida tuzilgan
-            interaktiv topshiriqlar. Har bir ishni saytning o‘zida bajarib,
-            natijani darhol tekshirish mumkin.
-          </p>
+        <p className="mb-4 text-xs sm:text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+          9-sinf fizika darsligidagi amaliy mashg‘ulotlar asosida tuzilgan
+          interaktiv topshiriqlar. Har bir ishni saytning o‘zida bajarib,
+          natijani darhol tekshirish mumkin.
+        </p>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {PRACTICAL_LABS.map((lab) => {
-              const Icon = PRACTICAL_ICONS[lab.id];
-              return (
-                <button
-                  key={lab.id}
-                  type="button"
-                  onClick={() => setSelectedId(lab.id)}
-                  className="group flex w-full flex-col rounded-2xl bg-white/55 p-3 text-left ring-1 ring-inset ring-slate-900/10 transition hover:-translate-y-0.5 hover:bg-white/80 hover:ring-sky-500/40 dark:bg-white/5 dark:ring-white/10 dark:hover:bg-white/10"
-                >
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <span className="grid h-8 w-8 place-content-center rounded-full bg-gradient-to-br from-sky-400 to-sky-700 text-white">
-                      <Icon size={15} aria-hidden="true" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {PRACTICAL_LABS.map((lab) => {
+            const Icon = PRACTICAL_ICONS[lab.id];
+            return (
+              <button
+                key={lab.id}
+                type="button"
+                data-practical-lab={lab.id}
+                onClick={() => setSelectedId(lab.id)}
+                className="group fizlab-neo-card is-interactive !p-4 text-left w-full flex flex-col cursor-pointer"
+              >
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <span className="fizlab-neo-icon">
+                      <Icon size={16} strokeWidth={2} aria-hidden="true" />
                     </span>
-                    <ChevronRight
-                      size={16}
-                      className="text-sky-600 opacity-70 transition-transform group-hover:translate-x-0.5 dark:text-sky-400"
-                      aria-hidden="true"
-                    />
+                    <div className="min-w-0">
+                      <div className="text-xs font-mono-tabular text-sky-700/85 dark:text-sky-300/85">
+                        {lab.code} · {lab.grade}-sinf
+                      </div>
+                      <div className="fizlab-neo-heading text-sm sm:text-base leading-snug mt-0.5">
+                        {lab.shortTitle}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-[10px] font-mono-tabular text-sky-700/85 dark:text-sky-300/85">
-                    {lab.code} · {lab.grade}-sinf
-                  </div>
-                  <div className="text-sm font-semibold leading-snug text-slate-900 dark:text-white">
-                    {lab.shortTitle}
-                  </div>
-                  <p className="mt-1 line-clamp-3 text-[11px] leading-snug text-slate-600 dark:text-slate-400">
+                  <ChevronRight
+                    size={16}
+                    className="text-sky-600 dark:text-sky-400 opacity-70 transition-transform duration-150 group-hover:translate-x-0.5 shrink-0 mt-1"
+                    aria-hidden="true"
+                  />
+                </div>
+
+                <div className="fizlab-neo-well !p-3 mt-auto flex flex-col justify-between gap-2.5">
+                  <p className="text-xs leading-relaxed text-slate-700 dark:text-slate-300">
                     {lab.goal}
                   </p>
-                  <div className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-sky-700 dark:text-sky-300">
-                    <CheckCircle2 size={12} aria-hidden="true" />
-                    <span>Boshlash</span>
+                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-700 dark:text-sky-300">
+                    <CheckCircle2 size={13} aria-hidden="true" />
+                    <span>Mashg‘ulotni boshlash</span>
                   </div>
-                </button>
-              );
-            })}
-          </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

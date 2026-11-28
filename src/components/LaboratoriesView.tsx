@@ -4,7 +4,6 @@ import { useGSAP } from '@gsap/react';
 import {
   Activity,
   ArrowLeft,
-  Atom,
   BookOpen,
   Box,
   Camera,
@@ -199,6 +198,7 @@ export default function LaboratoriesView({
   onToggleTheme,
   onLogout,
   viewMode: controlledViewMode,
+  onChangeViewMode,
   onAiModeChange,
 }: LaboratoriesViewProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -369,6 +369,16 @@ export default function LaboratoriesView({
     engineRef.current?.resetSimulationState();
   };
 
+  const handleGoHome = () => {
+    setSelectedTheoryGrade(null);
+    setSelectedTestGrade(null);
+    setSelectedLibraryGrade(null);
+    setSelectedSimulationChapterId(null);
+    setSelectedLabSubSectionId(null);
+    setActiveModuleTab('all');
+    onChangeViewMode?.('sections');
+  };
+
   const tempC = Math.round(temperatureK - 273.15);
 
   if (isAiOpen) {
@@ -441,22 +451,19 @@ export default function LaboratoriesView({
             }`}
           >
             <div className="gw-brand">
-              <span
-                className={
-                  viewMode === 'sections'
-                    ? 'fizlab-neo-brand-icon'
-                    : 'gw-brand-icon'
-                }
+              <button
+                type="button"
+                onClick={handleGoHome}
+                aria-label="Bosh sahifaga qaytish"
+                title="Bosh sahifaga qaytish"
+                className="fizlab-brand-home-btn"
               >
-                <Atom size={17} strokeWidth={2} aria-hidden="true" />
-              </span>
-              <strong
-                className={
-                  viewMode === 'sections' ? 'fizlab-neo-brand-title' : ''
-                }
-              >
-                FizLab 3D
-              </strong>
+                <img
+                  src="/logo.png"
+                  alt="FizLab 3D"
+                  className="h-9 sm:h-10 w-auto object-contain shrink-0 select-none"
+                />
+              </button>
               <span className="gw-brand-divider" />
               <span className="gw-personal">
                 {viewMode === 'sections'
@@ -560,6 +567,7 @@ export default function LaboratoriesView({
                   setSelectedLabSubSectionId(null);
                   setActiveModuleTab('all');
                 }}
+                theme={theme}
               />
             ) : (
             /* Balanced 3x2 section cards */
@@ -1127,6 +1135,27 @@ const labWorkspaceOverrides = `
 }
 [data-theme="dark"] .fizlab-neo-brand-title {
   color: #F1F7FF;
+}
+
+.gw-root .fizlab-brand-home-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 4px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.3, 1.5, 0.5, 1), opacity 0.18s ease;
+}
+.gw-root .fizlab-brand-home-btn:hover {
+  transform: scale(1.03);
+}
+.gw-root .fizlab-brand-home-btn:active {
+  transform: scale(0.97);
+}
+.gw-root .fizlab-brand-home-btn:focus-visible {
+  outline: 2px solid #00A2FF;
+  outline-offset: 2px;
 }
 
 .gw-root .fizlab-logout-orb {
